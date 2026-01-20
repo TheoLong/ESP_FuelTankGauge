@@ -153,23 +153,67 @@ void gauge_redraw_bar(int16_t x, int16_t y, float percent) {
     if (percent < 0.0f) percent = 0.0f;
     if (percent > 100.0f) percent = 100.0f;
     
-    // Calculate total bar dimensions
-    int total_height = GAUGE_SEGMENT_COUNT * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP) - GAUGE_SEGMENT_GAP;
+    // Internal padding between border and segments (all sides)
+    const int BORDER_PADDING = 1;
+    
+    // Segment drawing area (inside the padding)
+    int16_t seg_draw_x = x + BORDER_PADDING;
+    int16_t seg_draw_width = GAUGE_WIDTH - (BORDER_PADDING * 2);
+    
+    // Calculate total segment area dimensions (segments + gaps between them)
+    int segment_area_height = GAUGE_SEGMENT_COUNT * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP) - GAUGE_SEGMENT_GAP;
+    
+    // Total bar height including internal padding on top and bottom
+    int total_bar_height = segment_area_height + (BORDER_PADDING * 2);
+    
+    // Border is 1 pixel outside the bar area
+    int16_t border_top = y - 1;
+    int16_t border_bottom = y + total_bar_height;
+    int16_t border_left = x - 1;
+    int16_t border_right = x + GAUGE_WIDTH;
     
     // Draw gauge frame (skip parts that overlap debug region)
-    if (!overlaps_debug_region(y - 2, 2)) {
-        display_draw_hline(x - 2, y - 2, GAUGE_WIDTH + 4, UI_COLOR_BORDER);  // Top border
+    // Top border line
+    if (!overlaps_debug_region(border_top, 1)) {
+        display_draw_hline(border_left, border_top, GAUGE_WIDTH + 2, UI_COLOR_BORDER);
     }
-    if (!overlaps_debug_region(y + total_height + 2, 2)) {
-        display_draw_hline(x - 2, y + total_height + 2, GAUGE_WIDTH + 4, UI_COLOR_BORDER);  // Bottom border
+    // Bottom border line
+    if (!overlaps_debug_region(border_bottom, 1)) {
+        display_draw_hline(border_left, border_bottom, GAUGE_WIDTH + 2, UI_COLOR_BORDER);
     }
-    // Left and right borders - draw in segments to avoid debug region
-    for (int16_t by = y - 2; by <= y + total_height + 2; by++) {
+    // Left and right borders - draw pixel by pixel to avoid debug region
+    for (int16_t by = border_top; by <= border_bottom; by++) {
         if (!overlaps_debug_region(by, 1)) {
-            display_fill_rect(x - 2, by, 2, 1, UI_COLOR_BORDER);  // Left
-            display_fill_rect(x + GAUGE_WIDTH, by, 2, 1, UI_COLOR_BORDER);  // Right
+            display_fill_rect(border_left, by, 1, 1, UI_COLOR_BORDER);   // Left
+            display_fill_rect(border_right, by, 1, 1, UI_COLOR_BORDER);  // Right
         }
     }
+    
+    // Clear the internal padding area (between border and segments)
+    // Top padding (full width inside border)
+    if (!overlaps_debug_region(y, BORDER_PADDING)) {
+        display_fill_rect(x, y, GAUGE_WIDTH, BORDER_PADDING, UI_COLOR_BACKGROUND);
+    }
+    // Bottom padding (full width inside border)
+    int16_t bottom_pad_y = y + BORDER_PADDING + segment_area_height;
+    if (!overlaps_debug_region(bottom_pad_y, BORDER_PADDING)) {
+        display_fill_rect(x, bottom_pad_y, GAUGE_WIDTH, BORDER_PADDING, UI_COLOR_BACKGROUND);
+    }
+    // Left padding (between left border and segments, full height of segment area)
+    for (int16_t py = y + BORDER_PADDING; py < y + BORDER_PADDING + segment_area_height; py++) {
+        if (!overlaps_debug_region(py, 1)) {
+            display_fill_rect(x, py, BORDER_PADDING, 1, UI_COLOR_BACKGROUND);
+        }
+    }
+    // Right padding (between segments and right border, full height of segment area)
+    for (int16_t py = y + BORDER_PADDING; py < y + BORDER_PADDING + segment_area_height; py++) {
+        if (!overlaps_debug_region(py, 1)) {
+            display_fill_rect(x + GAUGE_WIDTH - BORDER_PADDING, py, BORDER_PADDING, 1, UI_COLOR_BACKGROUND);
+        }
+    }
+    
+    // Segments start after the top padding
+    int16_t segment_start_y = y + BORDER_PADDING;
     
     // Calculate pixel-level fill
     // Total fillable pixels (excluding gaps)
@@ -184,7 +228,7 @@ void gauge_redraw_bar(int16_t x, int16_t y, float percent) {
     for (int seg = 0; seg < GAUGE_SEGMENT_COUNT; seg++) {
         // Calculate Y position for this segment (bottom-up)
         int segment_from_top = GAUGE_SEGMENT_COUNT - 1 - seg;
-        int16_t seg_y = y + (segment_from_top * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP));
+        int16_t seg_y = segment_start_y + (segment_from_top * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP));
         
         // Skip segments that overlap with debug region in debug mode
         if (overlaps_debug_region(seg_y, GAUGE_SEGMENT_HEIGHT)) {
@@ -201,7 +245,7 @@ void gauge_redraw_bar(int16_t x, int16_t y, float percent) {
         
         if (pixels_remaining >= GAUGE_SEGMENT_HEIGHT) {
             // Fully filled segment
-            display_fill_rect(x, seg_y, GAUGE_WIDTH, GAUGE_SEGMENT_HEIGHT, seg_color);
+            display_fill_rect(seg_draw_x, seg_y, seg_draw_width, GAUGE_SEGMENT_HEIGHT, seg_color);
             pixels_remaining -= GAUGE_SEGMENT_HEIGHT;
         } else if (pixels_remaining > 0) {
             // Partially filled segment - fill from bottom
@@ -210,17 +254,17 @@ void gauge_redraw_bar(int16_t x, int16_t y, float percent) {
             
             // Empty part (top of segment)
             if (empty_in_seg > 0) {
-                display_fill_rect(x, seg_y, GAUGE_WIDTH, empty_in_seg, UI_COLOR_EMPTY);
+                display_fill_rect(seg_draw_x, seg_y, seg_draw_width, empty_in_seg, UI_COLOR_EMPTY);
             }
             // Filled part (bottom of segment)
             if (filled_in_seg > 0) {
-                display_fill_rect(x, seg_y + empty_in_seg, GAUGE_WIDTH, filled_in_seg, seg_color);
+                display_fill_rect(seg_draw_x, seg_y + empty_in_seg, seg_draw_width, filled_in_seg, seg_color);
             }
             
             pixels_remaining = 0;
         } else {
             // Empty segment
-            display_fill_rect(x, seg_y, GAUGE_WIDTH, GAUGE_SEGMENT_HEIGHT, UI_COLOR_EMPTY);
+            display_fill_rect(seg_draw_x, seg_y, seg_draw_width, GAUGE_SEGMENT_HEIGHT, UI_COLOR_EMPTY);
         }
     }
 }
@@ -228,10 +272,15 @@ void gauge_redraw_bar(int16_t x, int16_t y, float percent) {
 void gauge_draw(int16_t x, int16_t y, float percent, int tank_number) {
     (void)tank_number;
     
-    // y is top of the bar area
-    // Layout: [Gallons text] [Bar] [Percentage text]
+    // y is top of the bar area (inside the border)
+    // Layout: [Gallons text] [Border + padding + Bar + padding + Border] [Percentage text]
+    
+    const int BORDER_PADDING = 1;
+    int segment_area_height = GAUGE_SEGMENT_COUNT * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP) - GAUGE_SEGMENT_GAP;
+    int total_bar_height = segment_area_height + (BORDER_PADDING * 2);
     
     // Draw gallons ABOVE the bar (skip if overlaps debug region)
+    // Gallons text ends 2 pixels above the border (border is at y-1)
     if (!overlaps_debug_region(y - 18, 16)) {
         gauge_draw_gallons(x, y - 18, percent);
     }
@@ -240,8 +289,8 @@ void gauge_draw(int16_t x, int16_t y, float percent, int tank_number) {
     gauge_redraw_bar(x, y, percent);
     
     // Draw percentage BELOW the bar (skip if overlaps debug region)
-    int total_height = GAUGE_SEGMENT_COUNT * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP) - GAUGE_SEGMENT_GAP;
-    int16_t pct_y = y + total_height + 3;
+    // Border bottom is at y + total_bar_height, text starts 6 pixels below for more spacing
+    int16_t pct_y = y + total_bar_height + 6;
     if (!overlaps_debug_region(pct_y, 16)) {
         gauge_draw_percentage(x, pct_y, percent);
     }
@@ -271,8 +320,10 @@ bool gauge_update_if_changed(int16_t x, int16_t y, float old_percent,
         gauge_draw_gallons(x, y - 18, new_percent);
         
         // Update percentage display BELOW bar
-        int total_height = GAUGE_SEGMENT_COUNT * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP) - GAUGE_SEGMENT_GAP;
-        gauge_draw_percentage(x, y + total_height + 3, new_percent);
+        const int BORDER_PADDING = 1;
+        int segment_area_height = GAUGE_SEGMENT_COUNT * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP) - GAUGE_SEGMENT_GAP;
+        int total_bar_height = segment_area_height + (BORDER_PADDING * 2);
+        gauge_draw_percentage(x, y + total_bar_height + 6, new_percent);
         
         return true;
     }

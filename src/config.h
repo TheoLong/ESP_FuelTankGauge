@@ -61,6 +61,50 @@
 #define PIN_TANK2_ADC         1       // GPIO1 = ADC1_CH1
 
 //==============================================================================
+// HARDWARE PINS - BRIGHTNESS SENSOR (ADC)
+//==============================================================================
+#define PIN_BRIGHTNESS_ADC    2       // GPIO2 = ADC1_CH2 (for ambient/dimmer voltage)
+
+//==============================================================================
+// BRIGHTNESS AUTO-DIMMING CONFIGURATION
+//==============================================================================
+// Reads a voltage (0-14V via voltage divider) to automatically adjust display brightness
+// Typical use: connected to vehicle dimmer circuit or ambient light sensor
+//
+// DISABLED BY DEFAULT - Set BRIGHTNESS_AUTO_ENABLE to 1 to enable
+//
+// Voltage Divider Circuit for 0-14V input:
+//   Input Voltage (0-14V) -> [R1] -> ADC_PIN -> [R2] -> GND
+//
+//   With R1=33k, R2=10k:
+//   - Input 0V  -> ADC reads 0V
+//   - Input 14V -> ADC reads ~3.26V (within 3.3V limit)
+//
+//   Formula: Vout = Vin * R2 / (R1 + R2)
+//   Reverse: Vin = Vout * (R1 + R2) / R2
+
+#define BRIGHTNESS_AUTO_ENABLE      0           // 0=Disabled, 1=Enabled
+
+// Voltage divider resistor values (for calculating input voltage)
+#define BRIGHTNESS_DIVIDER_R1       33000.0f    // Top resistor (ohms) - between input and ADC
+#define BRIGHTNESS_DIVIDER_R2       10000.0f    // Bottom resistor (ohms) - between ADC and GND
+
+// Input voltage to brightness mapping
+// When input voltage is at or below MIN, brightness = BRIGHTNESS_MIN
+// When input voltage is at or above MAX, brightness = BRIGHTNESS_MAX
+// Linear interpolation between
+#define BRIGHTNESS_VOLTAGE_MIN      0.0f        // Minimum input voltage (V) - full dim
+#define BRIGHTNESS_VOLTAGE_MAX      12.0f       // Maximum input voltage (V) - full bright
+
+// Brightness output range (0-255)
+#define BRIGHTNESS_OUTPUT_MIN       20          // Minimum brightness (never fully off)
+#define BRIGHTNESS_OUTPUT_MAX       255         // Maximum brightness
+
+// Update rate for brightness readings
+#define BRIGHTNESS_UPDATE_MS        500         // How often to read brightness ADC (ms)
+#define BRIGHTNESS_SAMPLES          5           // Number of ADC samples to average
+
+//==============================================================================
 // VOLTAGE DIVIDER CIRCUIT
 //==============================================================================
 // Circuit: Vref -> R_reference -> ADC_PIN -> R_sender -> GND

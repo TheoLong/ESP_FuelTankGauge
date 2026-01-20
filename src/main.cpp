@@ -18,6 +18,7 @@
 #include "config.h"
 #include "display/display.h"
 #include "display/gauge.h"
+#include "display/brightness.h"
 #include "sensor/fuel_sensor.h"
 #include "modes/modes.h"
 
@@ -93,6 +94,9 @@ void setup() {
     fuel_sensor_init();
     Serial.println("OK");
     
+    // Initialize brightness control (auto-dimming)
+    brightness_init();
+    
     // Initialize demo mode
     Serial.println("Initializing demo mode...");
     demo_mode_init();
@@ -121,7 +125,7 @@ void setup() {
     // Vertical position - Layout: [Gallons text] [Bar] [Percentage text]
     // Maximize bar usage - minimal margins
     int text_height = 18;  // Height for text rows (size 2 = ~16px + small padding)
-    int top_margin = 2;    // Small margin from top of screen
+    int top_margin = 1;    // Small margin from top of screen
     int bottom_margin = 2; // Small margin from bottom
     int total_bar_height = GAUGE_SEGMENT_COUNT * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP) - GAUGE_SEGMENT_GAP;
     
@@ -166,6 +170,11 @@ void setup() {
 
 void loop() {
     unsigned long now = millis();
+    
+    // ========================================================================
+    // Update Auto-Brightness (if enabled)
+    // ========================================================================
+    brightness_update();
     
     // ========================================================================
     // Check for BOOT Button Press (Mode Switch)

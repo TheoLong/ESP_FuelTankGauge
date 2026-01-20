@@ -35,7 +35,8 @@ OperatingMode mode_get_current();
 void mode_set(OperatingMode mode);
 
 /**
- * @brief Cycle to the next mode (Normal -> Demo -> Debug -> Normal)
+ * @brief Cycle to the next mode (Normal -> Debug -> Demo w/brightness -> Normal)
+ * In Demo mode, cycles through brightness levels before returning to Normal
  * @return The new mode after cycling
  */
 OperatingMode mode_cycle_next();
@@ -44,6 +45,16 @@ OperatingMode mode_cycle_next();
  * @brief Get the mode name as a string
  */
 const char* mode_get_name(OperatingMode mode);
+
+/**
+ * @brief Get current demo brightness step (0 = brightest)
+ */
+int demo_get_brightness_step();
+
+/**
+ * @brief Get total number of demo brightness levels
+ */
+int demo_get_brightness_levels();
 
 // ============================================================================
 // Button Handling

@@ -227,4 +227,5 @@
  .pio/libdeps/esp32c6/LovyanGFX/src/lgfx/v1/touch/Touch_TT21xxx.hpp \
  .pio/libdeps/esp32c6/LovyanGFX/src/lgfx/v1/touch/Touch_XPT2046.hpp \
  .pio/libdeps/esp32c6/LovyanGFX/src/lgfx/v1/touch/Touch_RA8875.hpp \
- src/display/gauge.h src/sensor/fuel_sensor.h src/modes/modes.h
+ src/display/gauge.h src/display/brightness.h src/sensor/fuel_sensor.h \
+ src/modes/modes.h

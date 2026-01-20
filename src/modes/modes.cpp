@@ -1,5 +1,6 @@
 #include "modes.h"
 #include "../display/display.h"
+#include "../display/brightness.h"
 
 #ifndef NATIVE_BUILD
 #include <Arduino.h>
@@ -13,6 +14,17 @@ static OperatingMode current_mode = OP_MODE_DEMO;  // Default mode
 
 // Forward declaration for debug overlay state (defined below)
 static bool debug_overlay_drawn = false;
+
+// Demo mode brightness cycling (5 levels)
+#define DEMO_BRIGHTNESS_LEVELS 5
+static int demo_brightness_step = 0;  // 0 = full brightness, 4 = lowest
+static const uint8_t demo_brightness_values[DEMO_BRIGHTNESS_LEVELS] = {
+    255,  // Level 0: 100% (full)
+    192,  // Level 1: 75%
+    128,  // Level 2: 50%
+    64,   // Level 3: 25%
+    32    // Level 4: ~12% (minimum, but not off)
+};
 
 void mode_init() {
     current_mode = (OperatingMode)DEFAULT_MODE;
@@ -32,18 +44,34 @@ OperatingMode mode_cycle_next() {
         debug_overlay_drawn = false;
     }
     
-    // Sequence: Normal -> Debug -> Demo -> Normal
+    // Sequence: Normal -> Debug -> Demo (with brightness cycling) -> Normal
     switch (current_mode) {
         case OP_MODE_NORMAL:
             current_mode = OP_MODE_DEBUG;
             debug_overlay_drawn = false;  // Force redraw when entering debug
+            brightness_set(255);  // Full brightness for debug
             break;
         case OP_MODE_DEBUG:
             current_mode = OP_MODE_DEMO;
+            demo_brightness_step = 0;  // Start at full brightness
+            brightness_set(demo_brightness_values[0]);
             break;
         case OP_MODE_DEMO:
+            // Cycle through brightness levels before leaving demo mode
+            demo_brightness_step++;
+            if (demo_brightness_step >= DEMO_BRIGHTNESS_LEVELS) {
+                // Done with brightness demo, go back to Normal
+                demo_brightness_step = 0;
+                brightness_set(255);  // Restore full brightness
+                current_mode = OP_MODE_NORMAL;
+            } else {
+                // Set next brightness level
+                brightness_set(demo_brightness_values[demo_brightness_step]);
+            }
+            break;
         default:
             current_mode = OP_MODE_NORMAL;
+            brightness_set(255);
             break;
     }
     return current_mode;
@@ -56,6 +84,14 @@ const char* mode_get_name(OperatingMode mode) {
         case OP_MODE_DEBUG:  return "DEBUG";
         default:             return "UNKNOWN";
     }
+}
+
+int demo_get_brightness_step() {
+    return demo_brightness_step;
+}
+
+int demo_get_brightness_levels() {
+    return DEMO_BRIGHTNESS_LEVELS;
 }
 
 // ============================================================================
@@ -176,8 +212,8 @@ float demo_get_tank2_percent() {
 
 // Debug overlay position - centered on screen
 // In portrait mode: LCD_WIDTH=170 (screen width), LCD_HEIGHT=320 (screen height)
-#define DEBUG_OVERLAY_HEIGHT  72      // Height of debug overlay area
-#define DEBUG_OVERLAY_Y     ((LCD_HEIGHT - DEBUG_OVERLAY_HEIGHT) / 2)  // Center vertically (~124)
+#define DEBUG_OVERLAY_HEIGHT  108     // Height of debug overlay area (8 lines including separator)
+#define DEBUG_OVERLAY_Y     ((LCD_HEIGHT - DEBUG_OVERLAY_HEIGHT) / 2)  // Center vertically
 #define DEBUG_OVERLAY_X     3         // Left margin
 #define DEBUG_LINE_SPACING  12        // Pixels between lines (text size 1 = 8px + 4px gap)
 
@@ -269,10 +305,10 @@ void debug_draw_overlay(uint16_t tank1_raw, float tank1_voltage, float tank1_res
         display_set_text_size(1);
         display_set_text_color(UI_COLOR_DEBUG);
         display_set_cursor(x1, y);
-        display_print("T1 GPIO");
+        display_print("T1 GPIO ");
         display_print_int(PIN_TANK1_ADC);
         display_set_cursor(x2, y);
-        display_print("T2 GPIO");
+        display_print("T2 GPIO ");
         display_print_int(PIN_TANK2_ADC);
     }
     y += DEBUG_LINE_SPACING;
@@ -325,6 +361,58 @@ void debug_draw_overlay(uint16_t tank1_raw, float tank1_voltage, float tank1_res
         debug_clear_line(x2, y, col_width);
         display_set_text_color(UI_COLOR_YELLOW);
         debug_draw_value(x2, y, "%", pct2, 0);
+    }
+    y += DEBUG_LINE_SPACING;
+    
+    // Separator line and Variable Brightness header
+    if (!debug_overlay_drawn) {
+        // Draw horizontal separator line
+        display_draw_hline(x1, y + 4, LCD_WIDTH - x1 - 6, UI_COLOR_BORDER);
+    }
+    y += DEBUG_LINE_SPACING;
+    
+    // Variable Brightness header
+    if (!debug_overlay_drawn) {
+        display_set_text_size(1);
+        display_set_text_color(UI_COLOR_DEBUG);
+        display_set_cursor(x1, y);
+        display_print("Var Brightness");
+    }
+    y += DEBUG_LINE_SPACING;
+    
+    // Enable status line with GPIO on right
+    if (!debug_overlay_drawn) {
+        display_set_text_size(1);
+        display_set_text_color(UI_COLOR_DEBUG);
+        display_set_cursor(x1, y);
+        display_print("Enable: ");
+        if (brightness_is_auto_enabled()) {
+            display_print("true");
+        } else {
+            display_print("false");
+        }
+        display_set_cursor(x2, y);
+        display_print("GPIO ");
+        display_print_int(PIN_BRIGHTNESS_ADC);
+    }
+    y += DEBUG_LINE_SPACING;
+    
+    // Brightness status line 2: ADC voltage and percentage
+    if (!debug_overlay_drawn) {
+        float bri_voltage = brightness_read_voltage();
+        uint16_t bri_raw = brightness_read_raw();
+        // Calculate brightness percentage (0V = 0%, 14V = 100%)
+        float bri_pct = (bri_voltage / 14.0f) * 100.0f;
+        if (bri_pct < 0) bri_pct = 0;
+        if (bri_pct > 100) bri_pct = 100;
+        
+        display_set_text_color(UI_COLOR_DEBUG);
+        display_set_cursor(x1, y);
+        display_print("V: ");
+        display_print_float(bri_voltage, 1);
+        display_set_cursor(x2, y);
+        display_print("%: ");
+        display_print_int((int)bri_pct);
     }
     
     // Update cached values

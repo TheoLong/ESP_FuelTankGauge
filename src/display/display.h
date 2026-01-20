@@ -103,6 +103,12 @@ void display_backlight_on();
 void display_backlight_off();
 
 /**
+ * @brief Set display brightness
+ * @param level Brightness level (0-255, 0=off, 255=max)
+ */
+void display_set_brightness(uint8_t level);
+
+/**
  * @brief Fill a rectangle
  * @param x X position
  * @param y Y position

@@ -84,6 +84,12 @@ void display_backlight_off() {
     }
 }
 
+void display_set_brightness(uint8_t level) {
+    if (gfx) {
+        gfx->setBrightness(level);
+    }
+}
+
 void display_fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
     if (gfx) {
         gfx->fillRect(x, y, w, h, color);
