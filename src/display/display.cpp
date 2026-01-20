@@ -66,24 +66,6 @@ void display_clear(uint16_t color) {
     }
 }
 
-void display_backlight_on() {
-    if (gfx) {
-        Serial.println("[DISPLAY] Backlight ON");
-        gfx->setBrightness(255);
-    } else {
-        Serial.println("[DISPLAY] WARNING: gfx is null in backlight_on!");
-    }
-}
-
-void display_backlight_off() {
-    if (gfx) {
-        Serial.println("[DISPLAY] Backlight OFF");
-        gfx->setBrightness(0);
-    } else {
-        Serial.println("[DISPLAY] WARNING: gfx is null in backlight_off!");
-    }
-}
-
 void display_set_brightness(uint8_t level) {
     if (gfx) {
         gfx->setBrightness(level);
@@ -153,8 +135,7 @@ int16_t display_get_text_width(const char* text, uint8_t size) {
 // Native build stubs for testing
 bool display_init() { return true; }
 void display_clear(uint16_t color) { (void)color; }
-void display_backlight_on() {}
-void display_backlight_off() {}
+void display_set_brightness(uint8_t level) { (void)level; }
 void display_fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
     (void)x; (void)y; (void)w; (void)h; (void)color;
 }

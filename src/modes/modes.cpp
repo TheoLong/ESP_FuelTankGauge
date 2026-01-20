@@ -198,14 +198,6 @@ void demo_mode_update(float* tank1_percent, float* tank2_percent) {
     *tank2_percent = demo_tank2;
 }
 
-float demo_get_tank1_percent() {
-    return demo_tank1;
-}
-
-float demo_get_tank2_percent() {
-    return demo_tank2;
-}
-
 // ============================================================================
 // Debug Mode Implementation
 // ============================================================================
@@ -253,24 +245,6 @@ void debug_draw_value(int16_t x, int16_t y, const char* label, float value, int 
 static void debug_clear_line(int16_t x, int16_t y, int16_t width) {
     // Clear the entire line (including label) - simpler and more reliable
     display_fill_rect(x, y, width, 10, UI_COLOR_BACKGROUND);
-}
-
-void debug_clear_overlay() {
-    // Draw a solid black box in the center of the screen
-    display_fill_rect(0, DEBUG_OVERLAY_Y - 3, LCD_WIDTH, DEBUG_OVERLAY_HEIGHT + 6, UI_COLOR_BACKGROUND);
-    
-    // Draw border around the debug box
-    display_draw_rect(0, DEBUG_OVERLAY_Y - 3, LCD_WIDTH, DEBUG_OVERLAY_HEIGHT + 6, UI_COLOR_BORDER);
-    
-    debug_overlay_drawn = false;
-    // Reset cached values to force redraw
-    last_tank1_raw = 0xFFFF;
-    last_tank2_raw = 0xFFFF;
-}
-
-void debug_request_clear() {
-    debug_overlay_drawn = false;
-    last_tank1_raw = 0xFFFF;
 }
 
 void debug_draw_overlay(uint16_t tank1_raw, float tank1_voltage, float tank1_resistance,

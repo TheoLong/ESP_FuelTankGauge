@@ -49,13 +49,6 @@ float fuel_sensor_voltage_to_resistance(float voltage);
 float fuel_sensor_resistance_to_percent(float resistance);
 
 /**
- * @brief Get complete fuel reading for a tank
- * @param tank_number Tank identifier (1 or 2)
- * @return FuelReading structure with all calculated values
- */
-FuelReading fuel_sensor_read(int tank_number);
-
-/**
  * @brief Apply smoothing/averaging to readings
  * @param tank_number Tank identifier (1 or 2)
  * @param num_samples Number of samples to average
@@ -70,12 +63,6 @@ FuelReading fuel_sensor_read_averaged(int tank_number, int num_samples);
  * @return Damped FuelReading with smoothed percentage
  */
 FuelReading fuel_sensor_read_damped(int tank_number, int num_samples);
-
-/**
- * @brief Reset EMA damping state (call when switching modes)
- */
-void fuel_sensor_reset_damping();
-FuelReading fuel_sensor_read_averaged(int tank_number, int num_samples);
 
 /**
  * @brief Check if a resistance value is within valid sender range

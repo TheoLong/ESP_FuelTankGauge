@@ -93,16 +93,6 @@ LGFX* display_get_gfx();
 void display_clear(uint16_t color);
 
 /**
- * @brief Turn backlight on
- */
-void display_backlight_on();
-
-/**
- * @brief Turn backlight off
- */
-void display_backlight_off();
-
-/**
  * @brief Set display brightness
  * @param level Brightness level (0-255, 0=off, 255=max)
  */

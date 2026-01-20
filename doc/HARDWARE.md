@@ -18,13 +18,13 @@ The ESP32-C6-LCD-1.9 is a compact development board featuring the ESP32-C6 micro
 
 **Product Link:** [Waveshare ESP32-C6-LCD-1.9](https://www.waveshare.com/wiki/ESP32-C6-LCD-1.9)
 
-### 1.2 ESP32-C6FH8 Specifications
+### 1.2 ESP32-C6FH4 Specifications
 
 | Parameter | Value |
 |-----------|-------|
 | CPU | 32-bit RISC-V single-core |
 | Clock Speed | Up to 160 MHz |
-| Flash | 8 MB (stacked) |
+| Flash | 4 MB (stacked) |
 | HP SRAM | 512 KB |
 | LP SRAM | 16 KB |
 | ROM | 320 KB |
@@ -40,7 +40,7 @@ The ESP32-C6-LCD-1.9 is a compact development board featuring the ESP32-C6 micro
 
 | Component | Description |
 |-----------|-------------|
-| ESP32-C6FH8 | Main MCU with stacked 8MB Flash |
+| ESP32-C6FH4 | Main MCU with stacked 4MB Flash (QFN32 package) |
 | ST7789 LCD | 1.9" 170×320 TFT display |
 | TCA9554 | I2C GPIO expander (8-channel) |
 | QMI8658 | 6-axis IMU (accelerometer + gyroscope) |
@@ -90,31 +90,41 @@ For this project, we use **Portrait Mode**:
 | DC | GPIO6 | Data/Command select |
 | CS | GPIO7 | Chip select |
 | RST | GPIO14 | Reset (active low) |
-| BL | GPIO15 | Backlight enable (PWM capable) |
+| BL | GPIO15 | Backlight enable (PWM, **active LOW**) |
+
+> **Note:** The backlight is **active LOW** - PWM 0 = full brightness, PWM 255 = off.
 
 ### 2.4 ST7789 Initialization
 
 The display requires specific offset parameters due to the panel size:
 - Column offset (left): 35
 - Row offset (top): 0
-- Column offset (right): 35
-- Row offset (bottom): 0
 
 ```cpp
-// Arduino_GFX initialization
-Arduino_DataBus *bus = new Arduino_HWSPI(6 /* DC */, 7 /* CS */, 5 /* SCK */, 4 /* MOSI */);
-Arduino_GFX *gfx = new Arduino_ST7789(
-    bus, 
-    14 /* RST */, 
-    0 /* rotation */, 
-    0 /* IPS */, 
-    170 /* width */, 
-    320 /* height */,
-    35 /* col_offset1 */, 
-    0 /* row_offset1 */, 
-    35 /* col_offset2 */, 
-    0 /* row_offset2 */
-);
+// LovyanGFX initialization (simplified)
+class LGFX : public lgfx::LGFX_Device {
+    lgfx::Panel_ST7789 _panel_instance;
+    lgfx::Bus_SPI _bus_instance;
+    lgfx::Light_PWM _light_instance;
+    
+public:
+    LGFX(void) {
+        // Panel configuration
+        auto cfg = _panel_instance.config();
+        cfg.memory_width = 170;
+        cfg.memory_height = 320;
+        cfg.offset_x = 35;
+        cfg.offset_y = 0;
+        cfg.invert = true;
+        _panel_instance.config(cfg);
+        
+        // Backlight - ACTIVE LOW (invert = true)
+        auto bl_cfg = _light_instance.config();
+        bl_cfg.pin_bl = 15;
+        bl_cfg.invert = true;  // Active LOW backlight
+        _light_instance.config(bl_cfg);
+    }
+};
 ```
 
 ---
@@ -225,14 +235,15 @@ This provides ~1873 ADC counts of useful range (good resolution).
 
 ### 5.2 Available Pins for Fuel Sensors
 
-| GPIO | ADC Channel | Recommended Use |
-|------|-------------|-----------------|
+| GPIO | ADC Channel | Use |
+|------|-------------|-----|
 | GPIO0 | ADC1_CH0 | **Tank 1 Sensor** |
 | GPIO1 | ADC1_CH1 | **Tank 2 Sensor** |
-| GPIO2 | ADC1_CH2 | Spare |
-| GPIO21 | - | Digital I/O |
-| GPIO22 | - | Digital I/O |
-| GPIO23 | - | Digital I/O |
+| GPIO2 | ADC1_CH2 | **Brightness ADC** (auto-dimming input) |
+| GPIO9 | - | **BOOT Button** (mode switching) |
+| GPIO21 | - | Digital I/O (spare) |
+| GPIO22 | - | Digital I/O (spare) |
+| GPIO23 | - | Digital I/O (spare) |
 
 ### 5.3 ESP32-C6 ADC Specifications
 

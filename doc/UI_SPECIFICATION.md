@@ -459,143 +459,154 @@ Standard display with gauges and percentage only:
 
 ### 7.2 Demo Mode
 
-Same display as Normal mode, but with simulated cycling values:
+Same display as Normal mode, but with simulated cycling values and 5 brightness levels. Pressing the BOOT button in Demo mode cycles through brightness levels before returning to Normal mode.
 
+**Demo Mode Brightness Levels:**
+| Step | Brightness | Value |
+|------|------------|-------|
+| 0 | 100% | 255 |
+| 1 | 75% | 191 |
+| 2 | 50% | 127 |
+| 3 | 25% | 64 |
+| 4 | 10% | 25 |
+
+**Fuel Level Cycling:**
 ```cpp
 // Demo mode cycling pattern
 // Tank 1: 0% → 100% → 0% ...
 // Tank 2: Offset by DEMO_TANK2_OFFSET (default 50%)
 
-static uint8_t demo_value = 0;
+static float demo_value = DEMO_START_TANK1;
 static bool demo_direction = true;  // true = increasing
 
-void demo_mode_update() {
+void demo_mode_update(float* tank1, float* tank2) {
     if (demo_direction) {
-        demo_value++;
-        if (demo_value >= 100) demo_direction = false;
+        demo_value += DEMO_CYCLE_STEP;
+        if (demo_value >= 100.0f) demo_direction = false;
     } else {
-        demo_value--;
-        if (demo_value == 0) demo_direction = true;
+        demo_value -= DEMO_CYCLE_STEP;
+        if (demo_value <= 0.0f) demo_direction = true;
     }
+    *tank1 = demo_value;
+    *tank2 = fmod(demo_value + DEMO_TANK2_OFFSET, 101.0f);
 }
-
-uint8_t demo_get_tank1() { return demo_value; }
-uint8_t demo_get_tank2() { return (demo_value + DEMO_TANK2_OFFSET) % 101; }
 ```
 
 ### 7.3 Debug Mode Display
 
-Debug mode shows additional diagnostic information overlaid on the gauge:
+Debug mode shows diagnostic information in a centered overlay at the bottom of the screen, covering part of the gauge area. The display is divided into three sections:
+
+1. **Tank Sensors**: GPIO pin, raw ADC, voltage, resistance, and percentage for each tank
+2. **Separator Line**: Visual divider
+3. **Brightness Section**: Auto-brightness status and ADC readings
 
 ```
-┌────────────────────────┬────────────────────────┐
-│        [ 75% ]         │        [ 42% ]         │
-│       (GREEN)          │       (YELLOW)         │
-│                        │                        │
-│    ┌──────────────┐    │    ┌──────────────┐    │
-│    │██████████████│    │    │              │    │
-│    │██████████████│    │    │              │    │
-│    │██████████████│    │    │              │    │
-│    │██████████████│    │    │██████████████│    │
-│    │┌────────────┐│    │    │┌────────────┐│    │
-│    ││PIN: GPIO0  ││    │    ││PIN: GPIO1  ││    │
-│    ││ADC: 1842   ││    │    ││ADC: 2567   ││    │
-│    ││V:   1.48V  ││    │    ││V:   2.07V  ││    │
-│    ││R:   82Ω    ││    │    ││R:   168Ω   ││    │
-│    │└────────────┘│    │    │└────────────┘│    │
-│    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓│    │    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓│    │
-│    │▒▒▒▒▒▒▒▒▒▒▒▒▒▒│    │    │▒▒▒▒▒▒▒▒▒▒▒▒▒▒│    │
-│    └──────────────┘    │    └──────────────┘    │
-│          T1            │          T2            │
-└────────────────────────┴────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│         25G               │           10G           │  ← Gallons
+│    ┌──────────────┐       │    ┌──────────────┐     │
+│    │              │       │    │              │     │
+│    │██████████████│       │    │              │     │
+│    │██████████████│       │    │              │     │
+│    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓│       │    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓│     │
+│    │▒▒▒▒▒▒▒▒▒▒▒▒▒▒│       │    │▒▒▒▒▒▒▒▒▒▒▒▒▒▒│     │
+├─────────────────────────────────────────────────────┤
+│  T1 GPIO 0        │   T2 GPIO 1                     │  ← Header
+│  ADC: 2048        │   ADC: 1024                     │  ← Raw ADC
+│  V: 1.65          │   V: 0.83                       │  ← Voltage
+│  R: 100           │   R: 200                        │  ← Resistance
+│  %: 68            │   %: 19                         │  ← Fuel %
+│  ──────────────────────────────────────             │  ← Separator
+│  Var Brightness                                     │  ← Section header
+│  Enable: false            GPIO 2                    │  ← Auto status
+│  ADC: 1500                Vpin: 1.21                │  ← Raw & pin V
+│  Vin: 5.2                 %: 37                     │  ← Input V & %
+└─────────────────────────────────────────────────────┘
 ```
 
 ### 7.4 Debug Overlay Specifications
 
 | Element | Value | Notes |
 |---------|-------|-------|
-| Position | Inside bar, mid-height | Centered vertically |
-| Background | Semi-transparent black | Or solid black |
-| Text Color | Cyan for labels | Yellow for values |
-| Font Size | 1 (6×8 pixels) | Small to fit inside bar |
-| Line Spacing | 12 pixels | Between debug lines |
+| Position | Bottom portion of screen | Overlays lower part of gauge |
+| Background | Black with cyan border | Solid background |
+| Text Color | Cyan for labels | Yellow for percentage values |
+| Font Size | 1 (6×8 pixels) | Compact for data density |
+| Line Spacing | 10 pixels | Between debug lines |
+| Columns | 2 | Tank 1 left, Tank 2 right |
 
 **Debug Information Displayed:**
 
-| Line | Label | Example | Description |
-|------|-------|---------|-------------|
-| 1 | PIN: | GPIO0 | ADC GPIO pin number |
-| 2 | ADC: | 1842 | Raw ADC value (0-4095) |
-| 3 | V: | 1.48V | Calculated voltage |
-| 4 | R: | 82Ω | Calculated resistance |
+| Section | Line | Content | Description |
+|---------|------|---------|-------------|
+| Tank | 1 | T1 GPIO X / T2 GPIO Y | ADC GPIO pin numbers |
+| Tank | 2 | ADC: XXXX | Raw ADC value (0-4095) |
+| Tank | 3 | V: X.XX | Voltage at ADC pin |
+| Tank | 4 | R: XXX | Calculated resistance (ohms) |
+| Tank | 5 | %: XX | Fuel percentage |
+| Separator | 6 | ───────── | Horizontal divider |
+| Brightness | 7 | Var Brightness | Section header |
+| Brightness | 8 | Enable: true/false, GPIO X | Auto-enable status and pin |
+| Brightness | 9 | ADC: XXXX, Vpin: X.XX | Raw ADC and pin voltage |
+| Brightness | 10 | Vin: X.X, %: XX | Input voltage and percentage |
 
 ### 7.5 Debug Mode Implementation
 
+The debug overlay is drawn as a full-width box at the bottom of the screen. Values are only redrawn when they change to minimize flicker.
+
 ```cpp
-void debug_mode_draw_overlay(tank_id_t tank, const debug_info_t* info) {
-    int bar_x = (tank == TANK_1) ? BAR1_X : BAR2_X;
-    int overlay_y = DEBUG_INFO_Y;
-    int overlay_w = GAUGE_BAR_WIDTH - 4;
-    int overlay_h = 4 * DEBUG_LINE_HEIGHT + 4;
+void debug_draw_overlay(uint16_t tank1_raw, float tank1_voltage, float tank1_resistance,
+                        uint16_t tank2_raw, float tank2_voltage, float tank2_resistance) {
+    // Only redraw values that have changed
+    // First draw: clear region and draw border
+    // Subsequent: clear and redraw only changed values
     
-    // Draw background box
-    gfx->fillRect(bar_x + 2, overlay_y, overlay_w, overlay_h, COLOR_BACKGROUND);
-    gfx->drawRect(bar_x + 2, overlay_y, overlay_w, overlay_h, COLOR_DEBUG_LABEL);
+    int16_t y = DEBUG_OVERLAY_Y;
+    int16_t x1 = 3;                    // Left column (Tank 1)
+    int16_t x2 = LCD_WIDTH / 2 + 5;   // Right column (Tank 2)
     
-    // Draw debug info lines
-    gfx->setTextSize(TEXT_SIZE_DEBUG);
-    int text_x = bar_x + 4;
-    int y = overlay_y + 2;
+    // Header: GPIO pin numbers (static, draw once)
+    // "T1 GPIO 0" | "T2 GPIO 1"
     
-    #if DEBUG_SHOW_PIN
-        gfx->setTextColor(COLOR_DEBUG_LABEL);
-        gfx->setCursor(text_x, y);
-        gfx->print("PIN:");
-        gfx->setTextColor(COLOR_DEBUG_VALUE);
-        gfx->print("GPIO");
-        gfx->print(info->gpio_pin);
-        y += DEBUG_LINE_HEIGHT;
-    #endif
+    // Tank readings (update when changed)
+    // ADC raw values
+    // Voltage values  
+    // Resistance values
+    // Percentage values (calculated from resistance)
     
-    #if DEBUG_SHOW_RAW_ADC
-        gfx->setTextColor(COLOR_DEBUG_LABEL);
-        gfx->setCursor(text_x, y);
-        gfx->print("ADC:");
-        gfx->setTextColor(COLOR_DEBUG_VALUE);
-        gfx->print(info->raw_adc);
-        y += DEBUG_LINE_HEIGHT;
-    #endif
+    // Separator line
     
-    #if DEBUG_SHOW_VOLTAGE
-        gfx->setTextColor(COLOR_DEBUG_LABEL);
-        gfx->setCursor(text_x, y);
-        gfx->print("V:");
-        gfx->setTextColor(COLOR_DEBUG_VALUE);
-        gfx->print(info->voltage, 2);
-        gfx->print("V");
-        y += DEBUG_LINE_HEIGHT;
-    #endif
-    
-    #if DEBUG_SHOW_RESISTANCE
-        gfx->setTextColor(COLOR_DEBUG_LABEL);
-        gfx->setCursor(text_x, y);
-        gfx->print("R:");
-        gfx->setTextColor(COLOR_DEBUG_VALUE);
-        gfx->print((int)info->resistance);
-        gfx->print((char)0xF4);  // Ω symbol or use "ohm"
-    #endif
+    // Brightness section
+    // "Var Brightness" header
+    // "Enable: X" and "GPIO Y"
+    // ADC raw and Vpin (ADC voltage)
+    // Vin (calculated input voltage) and percentage
 }
 ```
 
-### 7.6 Update Behavior
+**Key Implementation Details:**
+- Values cached to detect changes and skip unnecessary redraws
+- Full clear only on first draw, then selective clearing
+- Brightness ADC always readable even when auto-brightness disabled
+- Vin calculated using voltage divider reverse formula
+
+### 7.6 Mode Cycling
+
+The BOOT button (GPIO9) cycles through modes at runtime:
+
+```
+Normal → Debug → Demo (100%) → Demo (75%) → Demo (50%) → Demo (25%) → Demo (10%) → Normal
+```
+
+### 7.7 Update Behavior
 
 | Aspect | Behavior |
 |--------|----------|
-| Refresh Rate | 10 Hz (100ms interval) |
+| Main Loop Interval | 50ms (20 Hz) |
 | Minimum Change | 1% to trigger gauge redraw |
-| Smoothing | EMA filter on sensor readings |
+| Fuel Damping | EMA with alpha=0.10 (configurable) |
 | Animation | None (instant updates) |
-| Debug Overlay | Updates every cycle in DEBUG mode |
+| Debug Overlay | Updates only changed values |
+| Brightness | Updates every 500ms (when auto-enabled) |
 
 ---
 
@@ -706,21 +717,30 @@ These can be modified in `config.h`:
 
 ```cpp
 // ============== GAUGE LAYOUT ==============
+#define GAUGE_BAR_WIDTH       60      // Width of each bar in pixels
 #define GAUGE_SEGMENTS        20      // Number of visual segments
-#define GAUGE_SEGMENT_GAP     2       // Pixels for divider lines
+#define GAUGE_SEGMENT_LINE_W  1       // Segment divider line width
 
 // ============== COLOR THRESHOLDS ==============
-#define THRESHOLD_RED         20      // 0-X% = Red
-#define THRESHOLD_YELLOW      40      // X-Y% = Yellow
-                                      // Y-100% = Green
+#define THRESHOLD_RED_MAX     20      // 0-20% = Red
+#define THRESHOLD_YELLOW_MAX  40      // 20-40% = Yellow
+                                      // 40-100% = Green
 
 // ============== COLORS (RGB565) ==============
 #define COLOR_BACKGROUND      0x0000  // Black
 #define COLOR_BORDER          0xFFFF  // White
-#define COLOR_SEGMENT_LINE    0x4208  // Dark gray
-#define COLOR_RED             0xF800  // Pure red
-#define COLOR_YELLOW          0xFFE0  // Pure yellow
-#define COLOR_GREEN           0x07E0  // Pure green
+#define COLOR_SEGMENT_LINE    0x39E7  // Medium gray
+#define COLOR_ZONE_RED        0xF800  // Pure red
+#define COLOR_ZONE_YELLOW     0xFFE0  // Pure yellow
+#define COLOR_ZONE_GREEN      0x07E0  // Pure green
+
+// ============== DEBUG COLORS ==============
+#define COLOR_DEBUG_LABEL     0x07FF  // Cyan labels
+#define COLOR_DEBUG_VALUE     0xFFE0  // Yellow values
+
+// ============== SIGNAL FILTERING ==============
+#define FUEL_DAMPING_ENABLE   1       // Enable EMA smoothing
+#define FUEL_DAMPING_ALPHA    0.10f   // Smoothing factor
 ```
 
 ### 9.2 Alternative Color Schemes

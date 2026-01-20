@@ -330,23 +330,3 @@ bool gauge_update_if_changed(int16_t x, int16_t y, float old_percent,
     
     return false;
 }
-
-void gauge_draw_full_ui(float tank1_percent, float tank2_percent) {
-    // Clear screen
-    display_clear(UI_COLOR_BACKGROUND);
-    
-    // Calculate gauge positions (centered in portrait mode)
-    // Tank 1 on left half, Tank 2 on right half
-    int16_t center_gap = 20;
-    int16_t tank1_x = (LCD_HEIGHT / 2 - GAUGE_WIDTH) / 2;
-    int16_t tank2_x = LCD_HEIGHT / 2 + (LCD_HEIGHT / 2 - GAUGE_WIDTH) / 2;
-    
-    // Vertical position - centered
-    int total_bar_height = GAUGE_SEGMENT_COUNT * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP) - GAUGE_SEGMENT_GAP;
-    int total_element_height = UI_LABEL_OFFSET + total_bar_height + UI_PERCENT_OFFSET + (UI_FONT_SIZE_PERCENT * 8);
-    int16_t gauge_y = (LCD_WIDTH - total_element_height) / 2 + UI_LABEL_OFFSET;
-    
-    // Draw both gauges
-    gauge_draw(tank1_x, gauge_y, tank1_percent, 1);
-    gauge_draw(tank2_x, gauge_y, tank2_percent, 2);
-}

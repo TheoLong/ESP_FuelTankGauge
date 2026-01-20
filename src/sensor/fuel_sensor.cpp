@@ -134,18 +134,6 @@ bool fuel_sensor_is_valid_resistance(float resistance) {
             resistance <= (SENDER_RESISTANCE_EMPTY + tolerance));
 }
 
-FuelReading fuel_sensor_read(int tank_number) {
-    FuelReading reading;
-    
-    reading.raw_adc = fuel_sensor_read_raw(tank_number);
-    reading.voltage = fuel_sensor_adc_to_voltage(reading.raw_adc);
-    reading.resistance = fuel_sensor_voltage_to_resistance(reading.voltage);
-    reading.percent = fuel_sensor_resistance_to_percent(reading.resistance);
-    reading.valid = fuel_sensor_is_valid_resistance(reading.resistance);
-    
-    return reading;
-}
-
 FuelReading fuel_sensor_read_averaged(int tank_number, int num_samples) {
     if (num_samples < 1) num_samples = 1;
     if (num_samples > 100) num_samples = 100;
@@ -182,11 +170,4 @@ FuelReading fuel_sensor_read_damped(int tank_number, int num_samples) {
     }
     
     return reading;
-}
-
-void fuel_sensor_reset_damping() {
-    ema_initialized[0] = false;
-    ema_initialized[1] = false;
-    ema_tank1_percent = -1.0f;
-    ema_tank2_percent = -1.0f;
 }

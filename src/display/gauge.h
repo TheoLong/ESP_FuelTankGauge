@@ -56,13 +56,6 @@ bool gauge_update_if_changed(int16_t x, int16_t y, float old_percent,
                               float new_percent, int tank_number);
 
 /**
- * @brief Draw the full UI layout with both gauges
- * @param tank1_percent Tank 1 percentage (0-100)
- * @param tank2_percent Tank 2 percentage (0-100)
- */
-void gauge_draw_full_ui(float tank1_percent, float tank2_percent);
-
-/**
  * @brief Clear and redraw just the gauge bar area (for updates)
  * @param x X position of gauge left edge
  * @param y Y position of gauge top edge

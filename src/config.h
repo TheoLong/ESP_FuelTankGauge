@@ -33,10 +33,6 @@
 
 // Debug mode settings (only used when MODE_DEBUG = 1)
 #define DEBUG_UPDATE_RATE_MS  200     // How often to update debug info
-#define DEBUG_SHOW_RAW_ADC    1       // Show raw ADC value (0-4095)
-#define DEBUG_SHOW_VOLTAGE    1       // Show calculated voltage
-#define DEBUG_SHOW_RESISTANCE 1       // Show calculated resistance
-#define DEBUG_SHOW_PIN        1       // Show GPIO pin number
 
 //==============================================================================
 // HARDWARE PINS - LCD (Fixed by Waveshare hardware, do not change)
@@ -156,7 +152,6 @@
 
 #define FUEL_DAMPING_ENABLE   1         // 1=Enable EMA damping, 0=Disable
 #define FUEL_DAMPING_ALPHA    0.10f     // EMA smoothing factor (0.05=very smooth, 0.5=fast response)
-#define SMOOTHING_ALPHA       0.10f     // Legacy alias for FUEL_DAMPING_ALPHA
 #define MIN_CHANGE_PERCENT    1         // Minimum % change to trigger display update
 
 //==============================================================================
@@ -167,19 +162,7 @@
 #define SCREEN_ROTATION       0       // 0=Portrait, 1=Landscape, 2=Portrait180, 3=Landscape180
 
 // Backlight
-#define BACKLIGHT_DEFAULT     255     // Default brightness (0-255, not used - on/off only)
 #define BACKLIGHT_ACTIVE_LOW  1       // 1 = LOW turns on backlight, 0 = HIGH turns on
-
-//==============================================================================
-// GAUGE LAYOUT - POSITIONING
-//==============================================================================
-// Screen is divided into two halves for Tank 1 (left) and Tank 2 (right)
-
-#define LAYOUT_PCT_TEXT_Y     20      // Y position of percentage text
-#define LAYOUT_PCT_TEXT_H     30      // Height of percentage text area
-#define LAYOUT_BAR_TOP        55      // Y position where bar starts
-#define LAYOUT_BAR_BOTTOM     290     // Y position where bar ends
-#define LAYOUT_LABEL_Y        298     // Y position of tank labels (T1/T2)
 
 //==============================================================================
 // GAUGE APPEARANCE
@@ -243,24 +226,6 @@
 //==============================================================================
 #define TANK1_LABEL           "LEFT"    // Label for Tank 1
 #define TANK2_LABEL           "RIGHT"    // Label for Tank 2
-
-//==============================================================================
-// DEBUG MODE LAYOUT
-//==============================================================================
-// In debug mode, the screen shows gauges and diagnostic info overlay
-
-#define DEBUG_INFO_Y          140     // Y position for debug overlay (inside bar)
-#define DEBUG_LINE_HEIGHT     10      // Pixels between debug text lines
-#define DEBUG_BOX_PADDING     2       // Padding inside debug box
-
-//==============================================================================
-// CALCULATED VALUES (Do not modify)
-//==============================================================================
-#define GAUGE_BAR_HEIGHT      (LAYOUT_BAR_BOTTOM - LAYOUT_BAR_TOP)
-#define ZONE_WIDTH            (SCREEN_WIDTH / 2)
-#define BAR1_X                ((ZONE_WIDTH - GAUGE_BAR_WIDTH) / 2)
-#define BAR2_X                (ZONE_WIDTH + (ZONE_WIDTH - GAUGE_BAR_WIDTH) / 2)
-#define SEGMENT_HEIGHT_F      ((float)GAUGE_BAR_HEIGHT / (float)GAUGE_SEGMENTS)
 
 // Note: Mode is now runtime-switchable via BOOT button
 // MODE_NORMAL, MODE_DEMO, MODE_DEBUG are used as enum values (0, 1, 2)

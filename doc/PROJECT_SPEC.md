@@ -38,8 +38,8 @@ Build a dual fuel tank level gauge using an ESP32-C6 microcontroller with an int
 
 | Specification | Value |
 |---------------|-------|
-| MCU | ESP32-C6FH8 (RISC-V, 160MHz) |
-| Flash | 8MB (stacked) |
+| MCU | ESP32-C6FH4 (RISC-V, 160MHz, QFN32) |
+| Flash | 4MB (stacked) |
 | SRAM | 512KB HP + 16KB LP |
 | ROM | 320KB |
 | Wireless | WiFi 6 (2.4GHz), BLE 5, Zigbee 3.0/Thread |
@@ -154,18 +154,15 @@ For optimal ADC resolution across the 33-240Ω range:
 | Component | Choice | Rationale |
 |-----------|--------|-----------|
 | Framework | Arduino with ESP32 | Simpler development, good library support |
-| IDE | Arduino IDE 2.x or PlatformIO | User preference |
-| Display Library | Arduino_GFX_Library | Native support from Waveshare demos, lightweight, direct pixel access |
-| Board Package | esp32 by Espressif (≥3.0.7) | Required for ESP32-C6 support |
-
-**Alternative Considered:**
-- **LVGL**: More powerful UI framework, but overkill for this simple dual-bar display. Arduino_GFX provides direct pixel drawing which is ideal for custom bar graphs.
+| IDE | PlatformIO in VSCode | Better dependency management, build configuration |
+| Display Library | LovyanGFX | Fast rendering, PWM backlight support, excellent ST7789 support |
+| Board Package | Tasmota ESP32 platform | Required for ESP32-C6 support with Arduino |
 
 ### 4.2 Required Libraries
 
 | Library | Version | Purpose | Installation |
 |---------|---------|---------|--------------|
-| Arduino_GFX_Library | ≥1.5.6 | LCD display driver | Online/Offline |
+| LovyanGFX | ≥1.2.7 | LCD display driver | PlatformIO lib_deps |
 | esp_adc (ESP-IDF component) | Built-in | ADC calibration & reading | Included with ESP32 core |
 
 ### 4.3 Functional Requirements
@@ -203,35 +200,36 @@ For optimal ADC resolution across the 33-240Ω range:
 - Configurable voltage divider parameters
 
 #### FR-06: Operating Modes
-Three operating modes are supported, selectable via compile-time configuration:
+Three operating modes are supported, **switchable at runtime via BOOT button (GPIO9)**:
 
-**Normal Mode (`MODE_NORMAL`)**
+**Normal Mode (`MODE_NORMAL = 0`)**
 - Standard operation with real ADC sensors
 - Reads physical fuel tank senders
 - Displays fuel level gauges with color-coded levels
 
-**Demo Mode (`MODE_DEMO`)**
+**Demo Mode (`MODE_DEMO = 1`)**
 - For testing/demonstration without hardware
 - Does NOT use ADC inputs
 - Automatically cycles fuel levels 0% → 100% → 0%
-- Configurable cycle speed and tank offset
+- Includes 5 brightness levels (100%, 75%, 50%, 25%, 10%)
+- Button press cycles through brightness levels before returning to Normal
 
-**Debug Mode (`MODE_DEBUG`)**
+**Debug Mode (`MODE_DEBUG = 2`)**
 - For troubleshooting and calibration
 - Uses real ADC inputs
 - Displays fuel gauges PLUS diagnostic overlay:
-  - GPIO pin number
-  - Raw ADC value (0-4095)
-  - Calculated voltage (V)
-  - Calculated resistance (Ω)
+  - Tank 1 & 2: GPIO pin, raw ADC, voltage, resistance, percentage
+  - Brightness: enable status, GPIO, ADC raw, Vpin, Vin, percentage
 
 #### FR-07: Configuration Options
-All configurable parameters should be defined in a central config header:
+All configurable parameters are defined in a central config header (`config.h`):
 - Voltage divider parameters (Vref, R_ref)
 - Sender resistance range (R_full, R_empty)
 - Color thresholds for bar segments
-- Test mode enable/disable
-- Update/refresh rate
+- Default startup mode
+- EMA damping (FUEL_DAMPING_ENABLE, FUEL_DAMPING_ALPHA)
+- Auto-brightness control (BRIGHTNESS_AUTO_ENABLE)
+- Update/refresh rates
 
 ---
 
@@ -305,16 +303,18 @@ src/
 ├── main.cpp              # Entry point, setup and loop
 ├── config.h              # All configurable parameters
 ├── display/
-│   ├── display.h         # Display interface
+│   ├── display.h         # Display interface & LovyanGFX setup
 │   ├── display.cpp       # Display initialization
 │   ├── gauge.h           # Gauge drawing interface
-│   └── gauge.cpp         # Bar gauge rendering logic
+│   ├── gauge.cpp         # Bar gauge rendering logic
+│   ├── brightness.h      # Brightness control interface
+│   └── brightness.cpp    # Auto-brightness via ADC
 ├── sensor/
 │   ├── fuel_sensor.h     # Fuel sensor interface
-│   └── fuel_sensor.cpp   # ADC reading & conversion
-└── test/
-    ├── test_mode.h       # Test mode interface
-    └── test_mode.cpp     # Simulated fuel level cycling
+│   └── fuel_sensor.cpp   # ADC reading, conversion, damping
+└── modes/
+    ├── modes.h           # Mode management interface
+    └── modes.cpp         # Demo, debug, button handling
 ```
 
 ### 6.2 Data Flow
@@ -336,10 +336,12 @@ src/
 
 | Task | Interval | Notes |
 |------|----------|-------|
-| ADC Read | 100ms | Read both sensors |
-| Smoothing | Per read | Exponential moving average |
-| Display Update | 100ms | Only if level changed by ≥1% |
-| Test Mode Cycle | 50ms | When in test mode |
+| Button Check | Every loop | Check for BOOT button press |
+| ADC Read | 50ms | Read both sensors with averaging |
+| EMA Damping | Per read | Exponential moving average (alpha=0.10) |
+| Display Update | 50ms | Only if level changed by ≥1% |
+| Brightness Update | 500ms | When auto-brightness enabled |
+| Demo Mode Cycle | 150ms | When in demo mode |
 
 ---
 
