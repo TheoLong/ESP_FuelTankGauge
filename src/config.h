@@ -18,9 +18,14 @@
 // - MODE_DEMO:   Simulated cycling without hardware
 // - MODE_DEBUG:  Real sensors + diagnostic overlay
 
+// Default startup mode (can be changed at runtime via BOOT button)
+// 0 = Normal, 1 = Demo, 2 = Debug
+#define DEFAULT_MODE          0       // Start in Normal mode
+
+// Legacy compile-time mode defines (for backward compatibility)
 #define MODE_NORMAL           0       // Normal operation with real ADC sensors
 #define MODE_DEMO             1       // Demo mode: cycles gauge without ADC
-#define MODE_DEBUG            0       // Debug mode: shows gauge + ADC diagnostics
+#define MODE_DEBUG            2       // Debug mode: shows gauge + ADC diagnostics
 
 // Demo mode settings (only used when MODE_DEMO = 1)
 #define DEMO_CYCLE_SPEED_MS   150     // Milliseconds per 1% change (slower for observation)
@@ -42,6 +47,12 @@
 #define PIN_LCD_CS            7       // Chip Select
 #define PIN_LCD_RST           14      // Reset
 #define PIN_LCD_BL            15      // Backlight (PWM capable)
+
+//==============================================================================
+// HARDWARE PINS - BOOT BUTTON
+//==============================================================================
+#define PIN_BOOT_BUTTON       9       // BOOT button (GPIO9) - used for mode switching
+#define BUTTON_DEBOUNCE_MS    50      // Debounce time in milliseconds
 
 //==============================================================================
 // HARDWARE PINS - FUEL SENSORS (ADC)
@@ -205,12 +216,9 @@
 #define BAR2_X                (ZONE_WIDTH + (ZONE_WIDTH - GAUGE_BAR_WIDTH) / 2)
 #define SEGMENT_HEIGHT_F      ((float)GAUGE_BAR_HEIGHT / (float)GAUGE_SEGMENTS)
 
-//==============================================================================
-// MODE VALIDATION (Compile-time check)
-//==============================================================================
-#if (MODE_NORMAL + MODE_DEMO + MODE_DEBUG) != 1
-  #error "Exactly one operating mode must be enabled! Set one MODE_* to 1, others to 0."
-#endif
+// Note: Mode is now runtime-switchable via BOOT button
+// MODE_NORMAL, MODE_DEMO, MODE_DEBUG are used as enum values (0, 1, 2)
+// DEFAULT_MODE sets the startup mode
 
 //==============================================================================
 // COMPATIBILITY ALIASES (Used by internal modules)

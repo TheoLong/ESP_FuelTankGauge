@@ -46,29 +46,10 @@ bool display_init() {
     gfx->setBrightness(255);
     
     // Add a small delay for display stabilization
-    delay(100);
+    delay(50);
     
     // Clear to background color
     Serial.println("[DISPLAY] Clearing screen to background color");
-    display_clear(UI_COLOR_BACKGROUND);
-    
-    // Draw a test pattern to verify display works
-    Serial.println("[DISPLAY] Drawing test pattern...");
-    gfx->fillRect(0, 0, 50, 50, 0xF800);   // Red square top-left
-    gfx->fillRect(50, 0, 50, 50, 0x07E0);  // Green square
-    gfx->fillRect(100, 0, 50, 50, 0x001F); // Blue square
-    gfx->setTextColor(0xFFFF);
-    gfx->setTextSize(2);
-    gfx->setCursor(10, 80);
-    gfx->print("Display OK!");
-    gfx->setCursor(10, 110);
-    gfx->print("Fuel Gauge");
-    Serial.println("[DISPLAY] Test pattern drawn - you should see colored squares!");
-    
-    delay(2000);  // Show test pattern for 2 seconds
-    
-    // Clear again before returning
-    Serial.println("[DISPLAY] Clearing test pattern...");
     display_clear(UI_COLOR_BACKGROUND);
     
     Serial.println("[DISPLAY] Initialization complete!");

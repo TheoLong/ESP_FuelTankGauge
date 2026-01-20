@@ -5,6 +5,76 @@
 #include <stdint.h>
 
 // ============================================================================
+// Operating Mode Enum
+// ============================================================================
+
+typedef enum {
+    OP_MODE_NORMAL = 0,   // Real ADC readings from fuel senders
+    OP_MODE_DEMO = 1,     // Simulated cycling values for testing
+    OP_MODE_DEBUG = 2     // Real ADC readings with diagnostic overlay
+} OperatingMode;
+
+// ============================================================================
+// Runtime Mode Management
+// ============================================================================
+
+/**
+ * @brief Initialize the mode system with default mode
+ */
+void mode_init();
+
+/**
+ * @brief Get the current operating mode
+ */
+OperatingMode mode_get_current();
+
+/**
+ * @brief Set the operating mode
+ * @param mode The new operating mode
+ */
+void mode_set(OperatingMode mode);
+
+/**
+ * @brief Cycle to the next mode (Normal -> Demo -> Debug -> Normal)
+ * @return The new mode after cycling
+ */
+OperatingMode mode_cycle_next();
+
+/**
+ * @brief Get the mode name as a string
+ */
+const char* mode_get_name(OperatingMode mode);
+
+// ============================================================================
+// Button Handling
+// ============================================================================
+
+/**
+ * @brief Initialize the BOOT button for mode switching
+ */
+void button_init();
+
+/**
+ * @brief Check for button press (with debounce)
+ * @return true if button was pressed (falling edge detected)
+ */
+bool button_check_press();
+
+// ============================================================================
+// Debug Overlay Region (for gauge clipping)
+// ============================================================================
+
+/**
+ * @brief Get the Y start position of the debug overlay
+ */
+int16_t debug_get_overlay_y();
+
+/**
+ * @brief Get the height of the debug overlay
+ */
+int16_t debug_get_overlay_height();
+
+// ============================================================================
 // Demo Mode - Simulated cycling values for testing without sensors
 // ============================================================================
 

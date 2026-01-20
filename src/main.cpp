@@ -2,14 +2,16 @@
  * ESP32-C6 Dual Fuel Tank Gauge
  * 
  * Main application entry point for the fuel tank gauge display.
- * Supports three operating modes (configured in config.h):
- *   - MODE_NORMAL: Real ADC readings from fuel senders
- *   - MODE_DEMO: Simulated cycling values for testing without hardware
- *   - MODE_DEBUG: Real ADC readings with diagnostic overlay
+ * Supports three operating modes (switchable at runtime via BOOT button):
+ *   - NORMAL: Real ADC readings from fuel senders
+ *   - DEMO: Simulated cycling values for testing without hardware
+ *   - DEBUG: Real ADC readings with diagnostic overlay
  * 
  * Hardware: Waveshare ESP32-C6-LCD-1.9
  * Display: ST7789 170x320 LCD in portrait orientation
  * Sensors: 33-240 ohm fuel tank senders via voltage divider
+ * 
+ * Press BOOT button (GPIO9) to cycle modes: Normal → Demo → Debug → Normal
  */
 
 #include <Arduino.h>
@@ -30,6 +32,7 @@ static float prev_tank2_percent = -1.0f;
 
 static unsigned long last_update_time = 0;
 static bool initial_draw_done = false;
+static bool force_redraw = false;  // Force full redraw on mode change
 
 // Gauge positions (calculated in setup)
 static int16_t tank1_x = 0;
@@ -65,14 +68,14 @@ void setup() {
     Serial.println(" bytes");
     Serial.println();
     
-    // Print current mode
-    #if MODE_DEMO
-    Serial.println("Mode: DEMO (simulated values)");
-    #elif MODE_DEBUG
-    Serial.println("Mode: DEBUG (real ADC + diagnostics)");
-    #else
-    Serial.println("Mode: NORMAL (real ADC readings)");
-    #endif
+    // Initialize mode system
+    mode_init();
+    Serial.print("Starting in mode: ");
+    Serial.println(mode_get_name(mode_get_current()));
+    
+    // Initialize BOOT button for mode switching
+    button_init();
+    Serial.println("BOOT button initialized (press to cycle modes)");
     
     // Initialize display
     Serial.print("Initializing display... ");
@@ -85,18 +88,14 @@ void setup() {
     }
     Serial.println("OK");
     
-    // Initialize fuel sensors (in Normal and Debug modes)
-    #if !MODE_DEMO
+    // Initialize fuel sensors (needed for Normal and Debug modes)
     Serial.print("Initializing fuel sensors... ");
     fuel_sensor_init();
     Serial.println("OK");
-    #endif
     
-    // Initialize demo mode if enabled
-    #if MODE_DEMO
+    // Initialize demo mode
     Serial.println("Initializing demo mode...");
     demo_mode_init();
-    #endif
     
     // Calculate gauge positions for portrait mode (170 wide x 320 tall)
     // In portrait mode (rotation 0): 
@@ -168,44 +167,58 @@ void setup() {
 void loop() {
     unsigned long now = millis();
     
+    // ========================================================================
+    // Check for BOOT Button Press (Mode Switch)
+    // ========================================================================
+    
+    if (button_check_press()) {
+        OperatingMode new_mode = mode_cycle_next();
+        Serial.print("Mode changed to: ");
+        Serial.println(mode_get_name(new_mode));
+        
+        // Force a full redraw when mode changes
+        force_redraw = true;
+        
+        // Reset demo mode when switching to it
+        if (new_mode == OP_MODE_DEMO) {
+            demo_mode_init();
+        }
+    }
+    
     // Rate limit updates
-    if (now - last_update_time < UPDATE_INTERVAL_MS && initial_draw_done) {
+    if (now - last_update_time < UPDATE_INTERVAL_MS && initial_draw_done && !force_redraw) {
         return;
     }
     last_update_time = now;
     
     // ========================================================================
-    // Read/Update Tank Values Based on Mode
+    // Read/Update Tank Values Based on Current Mode
     // ========================================================================
     
-    #if MODE_DEMO
-    // Demo mode: Use simulated cycling values
-    demo_mode_update(&tank1_percent, &tank2_percent);
+    OperatingMode current = mode_get_current();
     
-    #else
-    // Normal or Debug mode: Read real sensors
-    FuelReading reading1 = fuel_sensor_read_averaged(1, ADC_SAMPLES);
-    FuelReading reading2 = fuel_sensor_read_averaged(2, ADC_SAMPLES);
+    // Store sensor readings for debug display (used after gauge update)
+    static FuelReading debug_reading1;
+    static FuelReading debug_reading2;
     
-    tank1_percent = reading1.percent;
-    tank2_percent = reading2.percent;
-    
-    // Debug mode: Also update overlay with raw values
-    #if MODE_DEBUG
-    debug_draw_overlay(
-        reading1.raw_adc, reading1.voltage, reading1.resistance,
-        reading2.raw_adc, reading2.voltage, reading2.resistance
-    );
-    #endif
-    
-    #endif // MODE_DEMO
+    if (current == OP_MODE_DEMO) {
+        // Demo mode: Use simulated cycling values
+        demo_mode_update(&tank1_percent, &tank2_percent);
+    } else {
+        // Normal or Debug mode: Read real sensors
+        debug_reading1 = fuel_sensor_read_averaged(1, ADC_SAMPLES);
+        debug_reading2 = fuel_sensor_read_averaged(2, ADC_SAMPLES);
+        
+        tank1_percent = debug_reading1.percent;
+        tank2_percent = debug_reading2.percent;
+    }
     
     // ========================================================================
     // Update Display
     // ========================================================================
     
-    if (!initial_draw_done) {
-        // First draw - render everything
+    if (!initial_draw_done || force_redraw) {
+        // First draw or mode change - render everything
         display_clear(UI_COLOR_BACKGROUND);
         gauge_draw(tank1_x, gauge_y, tank1_percent, 1);
         gauge_draw(tank2_x, gauge_y, tank2_percent, 2);
@@ -213,8 +226,9 @@ void loop() {
         prev_tank1_percent = tank1_percent;
         prev_tank2_percent = tank2_percent;
         initial_draw_done = true;
+        force_redraw = false;
         
-        Serial.println("Initial display drawn");
+        Serial.println("Display redrawn");
     } else {
         // Subsequent draws - only update if changed
         bool tank1_changed = gauge_update_if_changed(tank1_x, gauge_y, 
@@ -232,16 +246,27 @@ void loop() {
         }
     }
     
-    // Debug output to serial
-    #if MODE_DEBUG || MODE_DEMO
+    // ========================================================================
+    // Debug Mode Overlay (drawn AFTER gauge to prevent flashing)
+    // ========================================================================
+    
+    if (current == OP_MODE_DEBUG) {
+        debug_draw_overlay(
+            debug_reading1.raw_adc, debug_reading1.voltage, debug_reading1.resistance,
+            debug_reading2.raw_adc, debug_reading2.voltage, debug_reading2.resistance
+        );
+    }
+    
+    // Debug output to serial (in Demo or Debug modes)
     static unsigned long last_serial_print = 0;
     if (now - last_serial_print >= 1000) {
         last_serial_print = now;
-        Serial.print("Tank1: ");
+        Serial.print("[");
+        Serial.print(mode_get_name(mode_get_current()));
+        Serial.print("] Tank1: ");
         Serial.print(tank1_percent, 1);
         Serial.print("% | Tank2: ");
         Serial.print(tank2_percent, 1);
         Serial.println("%");
     }
-    #endif
 }

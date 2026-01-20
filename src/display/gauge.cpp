@@ -1,9 +1,24 @@
 #include "gauge.h"
 #include "display.h"
+#include "../modes/modes.h"
 
 #ifndef NATIVE_BUILD
 #include <Arduino.h>
 #endif
+
+// Check if a Y range overlaps with the debug overlay (only in debug mode)
+static bool overlaps_debug_region(int16_t y_start, int16_t height) {
+    if (mode_get_current() != OP_MODE_DEBUG) {
+        return false;
+    }
+    int16_t debug_y = debug_get_overlay_y();
+    int16_t debug_h = debug_get_overlay_height();
+    int16_t y_end = y_start + height;
+    int16_t debug_end = debug_y + debug_h;
+    
+    // Check if ranges overlap
+    return (y_start < debug_end && y_end > debug_y);
+}
 
 // Get the static color for a segment based on its position (not fill level)
 // Bottom segments are red, middle are yellow, top are green
@@ -141,8 +156,20 @@ void gauge_redraw_bar(int16_t x, int16_t y, float percent) {
     // Calculate total bar dimensions
     int total_height = GAUGE_SEGMENT_COUNT * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP) - GAUGE_SEGMENT_GAP;
     
-    // Draw gauge frame
-    display_draw_rect(x - 2, y - 2, GAUGE_WIDTH + 4, total_height + 4, UI_COLOR_BORDER);
+    // Draw gauge frame (skip parts that overlap debug region)
+    if (!overlaps_debug_region(y - 2, 2)) {
+        display_draw_hline(x - 2, y - 2, GAUGE_WIDTH + 4, UI_COLOR_BORDER);  // Top border
+    }
+    if (!overlaps_debug_region(y + total_height + 2, 2)) {
+        display_draw_hline(x - 2, y + total_height + 2, GAUGE_WIDTH + 4, UI_COLOR_BORDER);  // Bottom border
+    }
+    // Left and right borders - draw in segments to avoid debug region
+    for (int16_t by = y - 2; by <= y + total_height + 2; by++) {
+        if (!overlaps_debug_region(by, 1)) {
+            display_fill_rect(x - 2, by, 2, 1, UI_COLOR_BORDER);  // Left
+            display_fill_rect(x + GAUGE_WIDTH, by, 2, 1, UI_COLOR_BORDER);  // Right
+        }
+    }
     
     // Calculate pixel-level fill
     // Total fillable pixels (excluding gaps)
@@ -159,6 +186,16 @@ void gauge_redraw_bar(int16_t x, int16_t y, float percent) {
         int segment_from_top = GAUGE_SEGMENT_COUNT - 1 - seg;
         int16_t seg_y = y + (segment_from_top * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP));
         
+        // Skip segments that overlap with debug region in debug mode
+        if (overlaps_debug_region(seg_y, GAUGE_SEGMENT_HEIGHT)) {
+            if (pixels_remaining >= GAUGE_SEGMENT_HEIGHT) {
+                pixels_remaining -= GAUGE_SEGMENT_HEIGHT;
+            } else {
+                pixels_remaining = 0;
+            }
+            continue;
+        }
+        
         // Get the static color for this segment position
         uint16_t seg_color = get_segment_color(seg);
         
@@ -172,9 +209,13 @@ void gauge_redraw_bar(int16_t x, int16_t y, float percent) {
             int empty_in_seg = GAUGE_SEGMENT_HEIGHT - filled_in_seg;
             
             // Empty part (top of segment)
-            display_fill_rect(x, seg_y, GAUGE_WIDTH, empty_in_seg, UI_COLOR_EMPTY);
+            if (empty_in_seg > 0) {
+                display_fill_rect(x, seg_y, GAUGE_WIDTH, empty_in_seg, UI_COLOR_EMPTY);
+            }
             // Filled part (bottom of segment)
-            display_fill_rect(x, seg_y + empty_in_seg, GAUGE_WIDTH, filled_in_seg, seg_color);
+            if (filled_in_seg > 0) {
+                display_fill_rect(x, seg_y + empty_in_seg, GAUGE_WIDTH, filled_in_seg, seg_color);
+            }
             
             pixels_remaining = 0;
         } else {
@@ -190,15 +231,20 @@ void gauge_draw(int16_t x, int16_t y, float percent, int tank_number) {
     // y is top of the bar area
     // Layout: [Gallons text] [Bar] [Percentage text]
     
-    // Draw gallons ABOVE the bar (closer to bar)
-    gauge_draw_gallons(x, y - 18, percent);
+    // Draw gallons ABOVE the bar (skip if overlaps debug region)
+    if (!overlaps_debug_region(y - 18, 16)) {
+        gauge_draw_gallons(x, y - 18, percent);
+    }
     
-    // Draw the bar gauge
+    // Draw the bar gauge (handles debug region internally)
     gauge_redraw_bar(x, y, percent);
     
-    // Draw percentage BELOW the bar (closer to bar)
+    // Draw percentage BELOW the bar (skip if overlaps debug region)
     int total_height = GAUGE_SEGMENT_COUNT * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP) - GAUGE_SEGMENT_GAP;
-    gauge_draw_percentage(x, y + total_height + 3, percent);
+    int16_t pct_y = y + total_height + 3;
+    if (!overlaps_debug_region(pct_y, 16)) {
+        gauge_draw_percentage(x, pct_y, percent);
+    }
 }
 
 bool gauge_update_if_changed(int16_t x, int16_t y, float old_percent, 

@@ -9,6 +9,7 @@ A dual-tank fuel gauge display for the Waveshare ESP32-C6-LCD-1.9 development bo
 - **Static Color Zones**: Red (bottom 20%), Yellow (middle 20-40%), Green (top 40-100%)
 - **Pixel-Level Fill**: Smooth transitions as fuel level changes
 - **Configurable Tank Capacity**: Default 50 gallons, easily adjustable
+- **Runtime Mode Switching**: Press BOOT button to cycle modes (no reflash needed)
 - **Three Operating Modes**:
   - **Normal**: Real ADC sensor input
   - **Demo**: Cycling simulation for testing

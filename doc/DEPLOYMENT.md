@@ -191,18 +191,23 @@ If the board becomes unresponsive:
 
 ## Switching Operating Modes
 
-Edit `src/config.h` to change modes:
+### Runtime Mode Switching (BOOT Button)
+
+Press the **BOOT button** (GPIO9) to cycle through modes at runtime:
+
+```
+Normal → Demo → Debug → Normal → ...
+```
+
+The current mode is printed to the serial monitor on each change.
+
+### Default Startup Mode
+
+Edit `src/config.h` to change the default startup mode:
 
 ```cpp
-// Demo mode (for testing without sensors)
-#define MODE_NORMAL           0
-#define MODE_DEMO             1
-#define MODE_DEBUG            0
-
-// Normal mode (real sensors)
-#define MODE_NORMAL           1
-#define MODE_DEMO             0
-#define MODE_DEBUG            0
+// 0 = Normal, 1 = Demo, 2 = Debug
+#define DEFAULT_MODE          1       // Start in Demo mode
 ```
 
 After changing, rebuild and upload:
