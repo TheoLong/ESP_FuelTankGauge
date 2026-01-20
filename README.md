@@ -60,6 +60,7 @@ pio device monitor   # Serial monitor
 
 ## Documentation
 
+- [Deployment Guide](doc/DEPLOYMENT.md) - **Start here** for uploading code
 - [UI Specification](doc/UI_SPECIFICATION.md) - Display layout and rendering details
 - [Configuration Reference](doc/CONFIG_REFERENCE.md) - All configurable parameters
 - [Hardware Reference](doc/HARDWARE.md) - Pin assignments and circuits
