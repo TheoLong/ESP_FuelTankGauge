@@ -1,0 +1,14 @@
+{
+  "idf.portWin": "COM83",
+  "idf.flashType": "UART",
+  "idf.adapterTargetName": "esp32s3",
+  "idf.customExtraVars": {
+    "OPENOCD_SCRIPTS": "e:\\EspressifV5.3\\Espressif\\tools\\openocd-esp32\\v0.12.0-esp32-20240318/openocd-esp32/share/openocd/scripts",
+    "IDF_CCACHE_ENABLE": "1",
+    "ESP_ROM_ELF_DIR": "e:\\EspressifV5.3\\Espressif\\tools\\esp-rom-elfs\\20240305/",
+    "IDF_TARGET": "esp32c6"
+  },
+  "idf.openOcdConfigs": [
+    "board/esp32c6-builtin.cfg"
+  ]
+}
