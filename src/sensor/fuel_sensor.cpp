@@ -5,6 +5,35 @@
 #endif
 
 // ============================================================================
+// EMA Damping State (per tank)
+// ============================================================================
+
+static float ema_tank1_percent = -1.0f;  // -1 indicates uninitialized
+static float ema_tank2_percent = -1.0f;
+static bool ema_initialized[2] = {false, false};
+
+// Apply EMA damping to a reading
+static float apply_ema(float new_value, float* ema_state, bool* initialized) {
+#if FUEL_DAMPING_ENABLE
+    if (!(*initialized)) {
+        // First reading - initialize EMA to current value
+        *ema_state = new_value;
+        *initialized = true;
+        return new_value;
+    }
+    
+    // EMA formula: smoothed = alpha * new + (1 - alpha) * previous
+    *ema_state = FUEL_DAMPING_ALPHA * new_value + (1.0f - FUEL_DAMPING_ALPHA) * (*ema_state);
+    return *ema_state;
+#else
+    // Damping disabled - return raw value
+    (void)ema_state;
+    (void)initialized;
+    return new_value;
+#endif
+}
+
+// ============================================================================
 // Pure calculation functions (hardware-independent, testable)
 // ============================================================================
 
@@ -139,4 +168,25 @@ FuelReading fuel_sensor_read_averaged(int tank_number, int num_samples) {
     reading.valid = fuel_sensor_is_valid_resistance(reading.resistance);
     
     return reading;
+}
+
+FuelReading fuel_sensor_read_damped(int tank_number, int num_samples) {
+    // Get averaged reading first
+    FuelReading reading = fuel_sensor_read_averaged(tank_number, num_samples);
+    
+    // Apply EMA damping to the percentage
+    if (tank_number == 1) {
+        reading.percent = apply_ema(reading.percent, &ema_tank1_percent, &ema_initialized[0]);
+    } else {
+        reading.percent = apply_ema(reading.percent, &ema_tank2_percent, &ema_initialized[1]);
+    }
+    
+    return reading;
+}
+
+void fuel_sensor_reset_damping() {
+    ema_initialized[0] = false;
+    ema_initialized[1] = false;
+    ema_tank1_percent = -1.0f;
+    ema_tank2_percent = -1.0f;
 }

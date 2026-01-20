@@ -64,6 +64,20 @@ FuelReading fuel_sensor_read(int tank_number);
 FuelReading fuel_sensor_read_averaged(int tank_number, int num_samples);
 
 /**
+ * @brief Read with EMA damping applied (configurable via FUEL_DAMPING_ENABLE)
+ * @param tank_number Tank identifier (1 or 2)
+ * @param num_samples Number of samples to average before damping
+ * @return Damped FuelReading with smoothed percentage
+ */
+FuelReading fuel_sensor_read_damped(int tank_number, int num_samples);
+
+/**
+ * @brief Reset EMA damping state (call when switching modes)
+ */
+void fuel_sensor_reset_damping();
+FuelReading fuel_sensor_read_averaged(int tank_number, int num_samples);
+
+/**
  * @brief Check if a resistance value is within valid sender range
  * @param resistance Resistance in ohms
  * @return true if within SENDER_RESISTANCE_EMPTY to SENDER_RESISTANCE_FULL range

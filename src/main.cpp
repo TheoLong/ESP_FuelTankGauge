@@ -214,9 +214,9 @@ void loop() {
         // Demo mode: Use simulated cycling values
         demo_mode_update(&tank1_percent, &tank2_percent);
     } else {
-        // Normal or Debug mode: Read real sensors
-        debug_reading1 = fuel_sensor_read_averaged(1, ADC_SAMPLES);
-        debug_reading2 = fuel_sensor_read_averaged(2, ADC_SAMPLES);
+        // Normal or Debug mode: Read real sensors with EMA damping
+        debug_reading1 = fuel_sensor_read_damped(1, ADC_SAMPLES);
+        debug_reading2 = fuel_sensor_read_damped(2, ADC_SAMPLES);
         
         tank1_percent = debug_reading1.percent;
         tank2_percent = debug_reading2.percent;

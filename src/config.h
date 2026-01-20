@@ -149,13 +149,15 @@
 //==============================================================================
 // SIGNAL FILTERING / SMOOTHING
 //==============================================================================
-// Exponential Moving Average (EMA) smoothing
+// Exponential Moving Average (EMA) smoothing for fuel sensor readings
 // Lower alpha = smoother but slower response
 // Higher alpha = faster response but more noise
 // Range: 0.0 to 1.0
 
-#define SMOOTHING_ALPHA       0.15f   // EMA smoothing factor
-#define MIN_CHANGE_PERCENT    1       // Minimum % change to trigger display update
+#define FUEL_DAMPING_ENABLE   1         // 1=Enable EMA damping, 0=Disable
+#define FUEL_DAMPING_ALPHA    0.10f     // EMA smoothing factor (0.05=very smooth, 0.5=fast response)
+#define SMOOTHING_ALPHA       0.10f     // Legacy alias for FUEL_DAMPING_ALPHA
+#define MIN_CHANGE_PERCENT    1         // Minimum % change to trigger display update
 
 //==============================================================================
 // DISPLAY CONFIGURATION
@@ -239,8 +241,8 @@
 //==============================================================================
 // TANK LABELS
 //==============================================================================
-#define TANK1_LABEL           "T1"    // Label for Tank 1
-#define TANK2_LABEL           "T2"    // Label for Tank 2
+#define TANK1_LABEL           "LEFT"    // Label for Tank 1
+#define TANK2_LABEL           "RIGHT"    // Label for Tank 2
 
 //==============================================================================
 // DEBUG MODE LAYOUT
