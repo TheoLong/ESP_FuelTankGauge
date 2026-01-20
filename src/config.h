@@ -23,7 +23,7 @@
 #define MODE_DEBUG            0       // Debug mode: shows gauge + ADC diagnostics
 
 // Demo mode settings (only used when MODE_DEMO = 1)
-#define DEMO_CYCLE_SPEED_MS   30      // Milliseconds per 1% change
+#define DEMO_CYCLE_SPEED_MS   150     // Milliseconds per 1% change (slower for observation)
 #define DEMO_TANK2_OFFSET     50      // Tank 2 offset from Tank 1 (0-100)
 
 // Debug mode settings (only used when MODE_DEBUG = 1)
@@ -66,6 +66,13 @@
 
 #define DIVIDER_VREF          3.3f    // Voltage applied to top of divider (V)
 #define DIVIDER_R_REFERENCE   100.0f  // Reference resistor value (ohms)
+
+//==============================================================================
+// TANK CAPACITY
+//==============================================================================
+// Configure the tank capacity for gallon display
+
+#define TANK_CAPACITY_GALLONS 50      // Tank capacity in gallons (0-50 range)
 
 //==============================================================================
 // FUEL SENDER SPECIFICATIONS
@@ -120,7 +127,7 @@
 //==============================================================================
 // GAUGE APPEARANCE
 //==============================================================================
-#define GAUGE_BAR_WIDTH       50      // Width of each bar in pixels
+#define GAUGE_BAR_WIDTH       60      // Width of each bar in pixels
 #define GAUGE_BORDER_WIDTH    2       // Border thickness around bars
 #define GAUGE_SEGMENTS        20      // Number of visual segment lines
 #define GAUGE_SEGMENT_LINE_W  1       // Segment divider line width (pixels)
@@ -251,8 +258,8 @@
 // Gauge dimensions
 #define GAUGE_WIDTH           GAUGE_BAR_WIDTH
 #define GAUGE_SEGMENT_COUNT   GAUGE_SEGMENTS
-#define GAUGE_SEGMENT_HEIGHT  10
-#define GAUGE_SEGMENT_GAP     2
+#define GAUGE_SEGMENT_HEIGHT  13
+#define GAUGE_SEGMENT_GAP     1
 
 // Text sizes
 #define UI_FONT_SIZE_LABEL    TEXT_SIZE_LABEL

@@ -119,10 +119,22 @@ void setup() {
     tank1_x = start_x;
     tank2_x = start_x + GAUGE_WIDTH + gap_between;
     
-    // Vertical position - centered with room for labels and percentages
+    // Vertical position - Layout: [Gallons text] [Bar] [Percentage text]
+    // Maximize bar usage - minimal margins
+    int text_height = 18;  // Height for text rows (size 2 = ~16px + small padding)
+    int top_margin = 2;    // Small margin from top of screen
+    int bottom_margin = 2; // Small margin from bottom
     int total_bar_height = GAUGE_SEGMENT_COUNT * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP) - GAUGE_SEGMENT_GAP;
-    int total_element_height = UI_LABEL_OFFSET + total_bar_height + UI_PERCENT_OFFSET + 24;
-    gauge_y = (screen_height - total_element_height) / 2 + UI_LABEL_OFFSET;
+    
+    // Bar starts after top margin + top text
+    gauge_y = top_margin + text_height;
+    
+    Serial.print("[LAYOUT] Bar starts at y=");
+    Serial.print(gauge_y);
+    Serial.print(" total_bar_height=");
+    Serial.print(total_bar_height);
+    Serial.print(" bar ends at y=");
+    Serial.println(gauge_y + total_bar_height);
     
     Serial.print("Gauge positions - Tank1: (");
     Serial.print(tank1_x);
@@ -143,8 +155,8 @@ void setup() {
     
     Serial.print("[LAYOUT] total_bar_height=");
     Serial.print(total_bar_height);
-    Serial.print(" total_element_height=");
-    Serial.println(total_element_height);    
+    Serial.print(" gauge_y=");
+    Serial.println(gauge_y);    
     Serial.println("Setup complete!");
     Serial.println();
 }

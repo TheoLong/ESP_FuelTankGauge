@@ -32,6 +32,38 @@
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
+		},
+		{
+			"label": "Upload New Gauge Design",
+			"type": "shell",
+			"command": "cd /Users/theo/Desktop/ESP_FuelTankGauge && pio run -t upload",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "PIO Upload New Design",
+			"type": "shell",
+			"command": "cd /Users/theo/Desktop/ESP_FuelTankGauge && pio run -t upload",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Upload Fixed Gallon Display",
+			"type": "shell",
+			"command": "cd /Users/theo/Desktop/ESP_FuelTankGauge && pio run -t upload",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Upload Gallons Top Percent Bottom",
+			"type": "shell",
+			"command": "cd /Users/theo/Desktop/ESP_FuelTankGauge && pio run -t upload",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
 		}
 	]
 }
