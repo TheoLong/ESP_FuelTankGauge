@@ -42,49 +42,48 @@
 
 ### 2.1 Overall Layout
 
-The screen is divided into two equal halves, one for each fuel tank.
+The screen is divided into two equal halves, one for each fuel tank. The display shows:
+- **Gallons** above each bar (e.g., "37G" for 37 gallons)
+- **Bar gauge** with static color zones (red at bottom, yellow in middle, green at top)
+- **Percentage** below each bar (e.g., "75%")
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                                                                     │ ← Y=0
-│                         TITLE AREA (Optional)                       │
-│                          "FUEL GAUGE"                               │
-│                                                                     │ ← Y=25
+│         37G                │              21G                       │ ← Y=2 (Gallons)
+│                             │                                       │
 ├─────────────────────────────┬───────────────────────────────────────┤
-│                             │                                       │
-│         TANK 1              │              TANK 2                   │
-│                             │                                       │
-│    ┌─────────────────┐      │      ┌─────────────────┐              │ ← Y=40
-│    │                 │      │      │                 │              │
-│    │    [  75%  ]    │      │      │    [  42%  ]    │              │
-│    │                 │      │      │                 │              │
-│    └─────────────────┘      │      └─────────────────┘              │ ← Y=60
-│                             │                                       │
-│    ┌───────────────────┐    │    ┌───────────────────┐              │ ← Y=70
-│    │░░░░░░░░░░░░░░░░░░░│    │    │                   │              │
-│    │░░░░░░░░░░░░░░░░░░░│    │    │                   │              │
-│    │░░░░░░░░░░░░░░░░░░░│    │    │                   │ ← Segment    │
-│    │░░░░░░░░░░░░░░░░░░░│    │    │                   │   Lines      │
-│    │███████████████████│    │    │                   │              │
-│    │███████████████████│    │    │███████████████████│              │
-│    │███████████████████│    │    │███████████████████│              │
-│    │███████████████████│    │    │███████████████████│              │
-│    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│    │    │███████████████████│              │
-│    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│    │    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│              │
-│    │▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│    │    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│              │
+│    ┌───────────────────┐    │    ┌───────────────────┐              │ ← Y=20
+│    │░░░░░░░░░░░░░░░░░░░│    │    │░░░░░░░░░░░░░░░░░░░│              │
+│    │░░░░░░░░░░░░░░░░░░░│    │    │░░░░░░░░░░░░░░░░░░░│              │
+│    │░░░░░░░░░░░░░░░░░░░│    │    │░░░░░░░░░░░░░░░░░░░│              │
+│    │░░░░░░░░░░░░░░░░░░░│    │    │░░░░░░░░░░░░░░░░░░░│              │
+│    │███████████████████│    │    │░░░░░░░░░░░░░░░░░░░│ ← Green zone │
+│    │███████████████████│    │    │░░░░░░░░░░░░░░░░░░░│   (top)      │
+│    │███████████████████│    │    │░░░░░░░░░░░░░░░░░░░│              │
+│    │███████████████████│    │    │░░░░░░░░░░░░░░░░░░░│              │
+│    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│    │    │░░░░░░░░░░░░░░░░░░░│              │
+│    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│    │    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│ ← Yellow     │
+│    │▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│    │    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│   (middle)   │
+│    │▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│    │    │▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│ ← Red zone   │
+│    │▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│    │    │▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│   (bottom)   │
 │    │▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│    │    │▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│              │
-│    └───────────────────┘    │    └───────────────────┘              │ ← Y=300
+│    └───────────────────┘    │    └───────────────────┘              │ ← Y=299
 │                             │                                       │
-│           "T1"              │              "T2"                     │ ← Y=305
+│         75%                 │              42%                      │ ← Y=302 (Percentage)
 │                             │                                       │
 └─────────────────────────────┴───────────────────────────────────────┘ ← Y=320
 X=0                          X=85                                   X=170
 
 Legend:
 ░░░ = Empty (Black background)
-███ = Green (40-100%)
-▓▓▓ = Yellow (20-40%)
-▒▒▒ = Red (0-20%)
+███ = Green (static position: top 60% of bar)
+▓▓▓ = Yellow (static position: 20-40% of bar height)
+▒▒▒ = Red (static position: bottom 20% of bar)
+
+Note: Colors are STATIC by position, not by fill level. The red zone is always
+at the bottom, yellow in the middle, green at the top. The fill simply reveals
+or hides these zones.
 ```
 
 ### 2.2 Layout Dimensions
@@ -94,10 +93,12 @@ Legend:
 | Screen | 0 | 170 | 0 | 320 | 170 | 320 |
 | Tank 1 Zone | 0 | 85 | 0 | 320 | 85 | 320 |
 | Tank 2 Zone | 85 | 170 | 0 | 320 | 85 | 320 |
-| Tank 1 Percentage | 10 | 75 | 40 | 60 | 65 | 20 |
-| Tank 2 Percentage | 95 | 160 | 40 | 60 | 65 | 20 |
-| Tank 1 Bar | 17 | 68 | 70 | 300 | 51 | 230 |
-| Tank 2 Bar | 102 | 153 | 70 | 300 | 51 | 230 |
+| Tank 1 Gallons | 10 | 75 | 2 | 18 | 65 | 16 |
+| Tank 2 Gallons | 95 | 160 | 2 | 18 | 65 | 16 |
+| Tank 1 Bar | 12 | 72 | 20 | 299 | 60 | 279 |
+| Tank 2 Bar | 97 | 157 | 20 | 299 | 60 | 279 |
+| Tank 1 Percentage | 10 | 75 | 302 | 318 | 65 | 16 |
+| Tank 2 Percentage | 95 | 160 | 302 | 318 | 65 | 16 |
 
 ### 2.3 Calculated Constants
 
@@ -109,25 +110,28 @@ Legend:
 // Zone division
 #define ZONE_WIDTH            (SCREEN_WIDTH / 2)    // 85 pixels per tank
 
-// Percentage text area
-#define PCT_TEXT_Y            40
-#define PCT_TEXT_HEIGHT       20
+// Layout margins (minimal to maximize bar size)
+#define TOP_MARGIN            2     // Pixels from top to gallons text
+#define BOTTOM_MARGIN         2     // Pixels from percentage text to bottom
+#define TEXT_HEIGHT           18    // Height reserved for text areas
 
 // Bar gauge area
-#define BAR_TOP               70
-#define BAR_BOTTOM            300
-#define BAR_HEIGHT            (BAR_BOTTOM - BAR_TOP)  // 230 pixels
+#define BAR_TOP               20    // Y position where bar starts
+#define BAR_HEIGHT            279   // 20 segments × 14 pixels - 1 gap
 
 // Bar dimensions
-#define BAR_WIDTH             51
-#define BAR_MARGIN            17  // From edge of zone to bar
+#define BAR_WIDTH             60    // Width of each bar in pixels
+#define SEGMENT_HEIGHT        13    // Height of each segment
+#define SEGMENT_GAP           1     // Gap between segments
+#define SEGMENT_COUNT         20    // Number of segments per bar
 
-// Bar positions
-#define BAR1_X                BAR_MARGIN                    // 17
-#define BAR2_X                (ZONE_WIDTH + BAR_MARGIN)     // 102
+// Bar positions (centered in each zone)
+#define BAR1_X                ((ZONE_WIDTH - BAR_WIDTH) / 2)           // ~12
+#define BAR2_X                (ZONE_WIDTH + (ZONE_WIDTH - BAR_WIDTH) / 2)  // ~97
 
-// Label area
-#define LABEL_Y               305
+// Text positions
+#define GALLONS_TEXT_Y        2     // Y position of gallons display
+#define PERCENT_TEXT_Y        302   // Y position of percentage display
 ```
 
 ---
@@ -136,119 +140,171 @@ Legend:
 
 ### 3.1 Segment Structure
 
-The bar is divided into 20 visual segments for easier reading. Each segment has a thin divider line.
+The bar is divided into 20 visual segments for easier reading. Each segment is 13 pixels high with a 1-pixel gap.
 
 ```
-Bar Height = 230 pixels
+Bar Height = 279 pixels (20 × 14 - 1)
 Segments = 20
-Segment Height = 230 / 20 = 11.5 pixels (use 11 with remainder at top)
+Segment Height = 13 pixels
+Segment Gap = 1 pixel
 
 Segment visual structure:
 ┌─────────────────────┐
-│███████████████████│ ← Segment 20 (top, 100%)
-├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤ ← Divider line (1px, dark gray)
-│███████████████████│ ← Segment 19 (95%)
-├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
-│███████████████████│ ← Segment 18 (90%)
+│███████████████████│ ← Segment 20 (top, GREEN zone)
+├─────────────────────┤ ← Gap (1px, black)
+│███████████████████│ ← Segment 19 (GREEN zone)
+├─────────────────────┤
+│███████████████████│ ← Segment 18 (GREEN zone)
 ...
-│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│ ← Segment 2 (10%)
-├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
-│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│ ← Segment 1 (bottom, 5%)
+│███████████████████│ ← Segment 13 (GREEN zone - top 60%)
+├─────────────────────┤
+│▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│ ← Segment 12 (YELLOW zone)
+├─────────────────────┤
+│▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│ ← Segment 11 (YELLOW zone)
+...
+│▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│ ← Segment 9 (YELLOW zone - 20-40%)
+├─────────────────────┤
+│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│ ← Segment 4 (RED zone)
+...
+│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│ ← Segment 1 (bottom, RED zone - 0-20%)
 └─────────────────────┘
 ```
 
-### 3.2 Continuous Fill (Not Discrete)
+### 3.2 Static Color Zones with Pixel-Level Fill
 
-The fill is **continuous**, not aligned to segment boundaries:
+The color zones are **static by position** - red is always at the bottom, yellow in the middle, green at the top. The fill level reveals or hides these zones pixel-by-pixel for smooth transitions:
 
 ```
-At 75% fill (not 80% or 70%):
+At 75% fill:
 
 ┌─────────────────────┐
-│                    │ ← Empty (black)
-├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
+│                    │ ← Empty (black) - top 25%
+├─────────────────────┤
 │                    │
-├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
+├─────────────────────┤
 │                    │
-├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
-│████████████████████│ ← Fill starts here (75% point)
-│████████████████████│   Fill is GREEN (40-100% zone)
-├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
+├─────────────────────┤
+│███FILL EDGE████████│ ← Pixel-level fill edge (smooth transition)
+│████████████████████│   GREEN zone (position 40-100%)
+├─────────────────────┤
 │████████████████████│
-├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
+├─────────────────────┤
 ...
 │████████████████████│
-├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
-│▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│ ← YELLOW zone (20-40%)
-├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
-│▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│
-├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
-│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│ ← RED zone (0-20%)
-├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
-│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│
+├─────────────────────┤
+│▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│ ← YELLOW zone (position 20-40%)
+├─────────────────────┤
+│▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│   Always yellow at this height
+├─────────────────────┤
+│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│ ← RED zone (position 0-20%)
+├─────────────────────┤
+│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│   Always red at this height
 └─────────────────────┘
+
+Key Features:
+• Colors are determined by POSITION, not fuel level
+• Fill/empty transitions happen pixel-by-pixel within segments
+• When fuel drops from 25% to 24%, pixels disappear smoothly
+• Segment gaps remain visible regardless of fill level
 ```
 
-### 3.3 Color Zones
+### 3.3 Static Color Zones
 
-The bar displays all three color zones within the filled area:
+Colors are determined by **position on the bar**, not by fuel level:
 
-| Zone | Percentage | Color | RGB565 Hex |
-|------|------------|-------|------------|
-| Red | 0% - 20% | Red | `0xF800` |
-| Yellow | 20% - 40% | Yellow | `0xFFE0` |
-| Green | 40% - 100% | Green | `0x07E0` |
+| Zone | Bar Position | Color | RGB565 Hex | Description |
+|------|--------------|-------|------------|-------------|
+| Red | Bottom 20% | Red | `0xF800` | Always red at bottom |
+| Yellow | Middle 20-40% | Yellow | `0xFFE0` | Always yellow in middle |
+| Green | Top 40-100% | Green | `0x07E0` | Always green at top |
 
-**Important:** Even if tank is at 100%, all three colors are visible in the bar.
+**Behavior:**
+- At 100% fill: All colors visible (red at bottom, yellow in middle, green at top)
+- At 50% fill: Red fully visible, yellow fully visible, green partially visible
+- At 30% fill: Red fully visible, yellow partially visible, green hidden
+- At 10% fill: Red partially visible, yellow and green hidden
 
 ---
 
-## 4. Percentage Text Display
+## 4. Text Display
 
-### 4.1 Text Specifications
+The display shows two text values for each tank:
+- **Gallons**: Displayed ABOVE the bar (e.g., "37G")
+- **Percentage**: Displayed BELOW the bar (e.g., "75%")
+
+### 4.1 Gallons Display (Top)
 
 | Property | Value |
 |----------|-------|
-| Font | Built-in Arduino_GFX font |
-| Text Size | 2 (16 pixels high) |
-| Format | "XX%" right-aligned |
+| Position | Above bar, centered horizontally |
+| Y Position | 2 pixels from top (bar_y - 18) |
+| Font Size | 2 (16 pixels high) |
+| Format | "XXG" (e.g., "37G", "50G", "0G") |
+| Color | Matches current fuel level zone |
+| Max Value | Configurable via `TANK_CAPACITY_GALLONS` (default: 50) |
+
+### 4.2 Percentage Display (Bottom)
+
+| Property | Value |
+|----------|-------|
+| Position | Below bar, centered horizontally |
+| Y Position | 3 pixels below bar bottom |
+| Font Size | 2 (16 pixels high) |
+| Format | "XX%" (e.g., "75%", "100%", "0%") |
 | Color | Matches current fuel level zone |
 
-### 4.2 Text Color Mapping
+### 4.3 Text Color Mapping
 
-The percentage text color reflects the current fuel level:
+Both gallons and percentage text colors reflect the current fuel level:
 
-| Level | Text Color | Example |
-|-------|------------|---------|
-| 0-20% | Red | <span style="color:red">**15%**</span> |
-| 20-40% | Yellow | <span style="color:yellow">**35%**</span> |
-| 40-100% | Green | <span style="color:green">**75%**</span> |
+| Level | Text Color | Gallon Example | Percent Example |
+|-------|------------|----------------|-----------------|
+| 0-20% | Red | **10G** | **20%** |
+| 20-40% | Yellow | **15G** | **30%** |
+| 40-100% | Green | **37G** | **75%** |
 
-### 4.3 Text Layout
+### 4.4 Text Layout Code
 
 ```cpp
-// Text size 2 = approximately 12x16 pixels per character
-// "100%" = 4 characters = ~48 pixels wide
-
-void draw_percentage_text(int zone_center_x, int y, uint8_t percent) {
-    char buf[5];
-    sprintf(buf, "%d%%", percent);
-    
-    // Calculate text width for centering
-    int text_width = strlen(buf) * 12;  // Approximate
-    int text_x = zone_center_x - (text_width / 2);
+// Gallon display - ABOVE bar
+void gauge_draw_gallons(int x, int y, uint8_t percent) {
+    int gallons = (percent * TANK_CAPACITY_GALLONS) / 100;
+    char buf[8];
+    sprintf(buf, "%dG", gallons);
     
     uint16_t color = get_color_for_percent(percent);
     
     // Clear previous text area
-    gfx->fillRect(zone_center_x - 30, y, 60, 20, COLOR_BACKGROUND);
+    display.fillRect(x - 10, y, GAUGE_WIDTH + 20, 16, TFT_BLACK);
     
-    // Draw new text
-    gfx->setTextColor(color);
-    gfx->setTextSize(2);
-    gfx->setCursor(text_x, y);
-    gfx->print(buf);
+    // Draw centered text
+    display.setTextColor(color);
+    display.setTextSize(2);
+    int text_width = strlen(buf) * 12;
+    int text_x = x + (GAUGE_WIDTH - text_width) / 2;
+    display.setCursor(text_x, y);
+    display.print(buf);
 }
+
+// Percentage display - BELOW bar
+void gauge_draw_percentage(int x, int y, uint8_t percent) {
+    char buf[5];
+    sprintf(buf, "%d%%", percent);
+    
+    uint16_t color = get_color_for_percent(percent);
+    
+    // Clear previous text area (wider for "100%")
+    display.fillRect(x - 10, y, GAUGE_WIDTH + 20, 16, TFT_BLACK);
+    
+    // Draw centered text
+    display.setTextColor(color);
+    display.setTextSize(2);
+    int text_width = strlen(buf) * 12;
+    int text_x = x + (GAUGE_WIDTH - text_width) / 2;
+    display.setCursor(text_x, y);
+    display.print(buf);
+}
+```
 ```
 
 ---

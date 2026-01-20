@@ -40,7 +40,7 @@ This document defines all configurable parameters for the ESP_FuelTankGauge proj
 #define MODE_DEBUG            0       // Debug mode: shows gauge + ADC diagnostics
 
 // Demo mode settings (only used when MODE_DEMO = 1)
-#define DEMO_CYCLE_SPEED_MS   50      // Milliseconds per 1% change
+#define DEMO_CYCLE_SPEED_MS   150     // Milliseconds per 1% change (slower for observation)
 #define DEMO_TANK2_OFFSET     50      // Tank 2 offset from Tank 1 (0-100)
 
 // Debug mode settings (only used when MODE_DEBUG = 1)
@@ -98,6 +98,12 @@ This document defines all configurable parameters for the ESP_FuelTankGauge proj
 #define SENDER_R_EMPTY        240.0f  // Resistance when tank is EMPTY (ohms)
 
 //==============================================================================
+// TANK CAPACITY
+//==============================================================================
+// Configure tank size for gallon display
+#define TANK_CAPACITY_GALLONS 50      // Tank capacity in gallons (displayed as 0-50G)
+
+//==============================================================================
 // ADC CONFIGURATION
 //==============================================================================
 #define ADC_RESOLUTION        12      // ADC resolution in bits (ESP32-C6 = 12-bit)
@@ -132,23 +138,26 @@ This document defines all configurable parameters for the ESP_FuelTankGauge proj
 // GAUGE LAYOUT - POSITIONING
 //==============================================================================
 // Screen is divided into two halves for Tank 1 (left) and Tank 2 (right)
+// Layout is optimized to maximize bar size with minimal margins
 
-#define LAYOUT_TITLE_HEIGHT   0       // Height for optional title area (0 to disable)
-#define LAYOUT_PCT_TEXT_Y     35      // Y position of percentage text
-#define LAYOUT_PCT_TEXT_H     25      // Height of percentage text area
-#define LAYOUT_BAR_TOP        65      // Y position where bar starts
-#define LAYOUT_BAR_BOTTOM     295     // Y position where bar ends
-#define LAYOUT_LABEL_Y        300     // Y position of tank labels (T1/T2)
-#define LAYOUT_CENTER_GAP     6       // Gap between left and right zones
+#define LAYOUT_TOP_MARGIN     2       // Pixels from top to gallons text
+#define LAYOUT_TEXT_HEIGHT    18      // Height reserved for text (gallons/percentage)
+#define LAYOUT_BAR_Y          20      // Y position where bar starts (top_margin + text_height)
+#define LAYOUT_BOTTOM_MARGIN  2       // Pixels from percentage text to bottom
+
+// Text positions (calculated dynamically based on bar position)
+// Gallons: bar_y - 18 (ABOVE bar)
+// Percentage: bar_y + total_bar_height + 3 (BELOW bar)
 
 //==============================================================================
 // GAUGE APPEARANCE
 //==============================================================================
-#define GAUGE_BAR_WIDTH       50      // Width of each bar in pixels
-#define GAUGE_BAR_MARGIN      10      // Margin from zone edge to bar
+#define GAUGE_BAR_WIDTH       60      // Width of each bar in pixels
 #define GAUGE_BORDER_WIDTH    2       // Border thickness around bars
-#define GAUGE_SEGMENTS        20      // Number of visual segment lines
-#define GAUGE_SEGMENT_LINE_W  1       // Segment divider line width
+#define GAUGE_SEGMENTS        20      // Number of visual segments
+#define GAUGE_SEGMENT_HEIGHT  13      // Height of each segment in pixels
+#define GAUGE_SEGMENT_GAP     1       // Gap between segments in pixels
+// Total bar height = SEGMENTS × (HEIGHT + GAP) - GAP = 20 × 14 - 1 = 279 pixels
 
 //==============================================================================
 // COLOR THRESHOLDS (Percentage)
