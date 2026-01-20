@@ -212,7 +212,7 @@ float demo_get_tank2_percent() {
 
 // Debug overlay position - centered on screen
 // In portrait mode: LCD_WIDTH=170 (screen width), LCD_HEIGHT=320 (screen height)
-#define DEBUG_OVERLAY_HEIGHT  108     // Height of debug overlay area (8 lines including separator)
+#define DEBUG_OVERLAY_HEIGHT  120     // Height of debug overlay area (9 lines including separator)
 #define DEBUG_OVERLAY_Y     ((LCD_HEIGHT - DEBUG_OVERLAY_HEIGHT) / 2)  // Center vertically
 #define DEBUG_OVERLAY_X     3         // Left margin
 #define DEBUG_LINE_SPACING  12        // Pixels between lines (text size 1 = 8px + 4px gap)
@@ -397,19 +397,40 @@ void debug_draw_overlay(uint16_t tank1_raw, float tank1_voltage, float tank1_res
     }
     y += DEBUG_LINE_SPACING;
     
-    // Brightness status line 2: ADC voltage and percentage
-    if (!debug_overlay_drawn) {
-        float bri_voltage = brightness_read_voltage();
+    // Brightness line 2: Raw ADC value and ADC pin voltage (always update)
+    {
         uint16_t bri_raw = brightness_read_raw();
+        // Calculate voltage at ADC pin (before voltage divider math)
+        float adc_voltage = ((float)bri_raw / 4095.0f) * 3.3f;
+        
+        debug_clear_line(x1, y, col_width);
+        display_set_text_color(UI_COLOR_DEBUG);
+        display_set_cursor(x1, y);
+        display_print("ADC: ");
+        display_print_int(bri_raw);
+        
+        debug_clear_line(x2, y, col_width);
+        display_set_cursor(x2, y);
+        display_print("Vpin: ");
+        display_print_float(adc_voltage, 2);
+    }
+    y += DEBUG_LINE_SPACING;
+    
+    // Brightness line 3: Interpreted input voltage and percentage (always update)
+    {
+        float bri_voltage = brightness_read_voltage();
         // Calculate brightness percentage (0V = 0%, 14V = 100%)
         float bri_pct = (bri_voltage / 14.0f) * 100.0f;
         if (bri_pct < 0) bri_pct = 0;
         if (bri_pct > 100) bri_pct = 100;
         
+        debug_clear_line(x1, y, col_width);
         display_set_text_color(UI_COLOR_DEBUG);
         display_set_cursor(x1, y);
-        display_print("V: ");
+        display_print("Vin: ");
         display_print_float(bri_voltage, 1);
+        
+        debug_clear_line(x2, y, col_width);
         display_set_cursor(x2, y);
         display_print("%: ");
         display_print_int((int)bri_pct);

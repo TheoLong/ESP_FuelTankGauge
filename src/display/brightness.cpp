@@ -11,11 +11,11 @@ static unsigned long last_update_time = 0;
 
 void brightness_init() {
 #ifndef NATIVE_BUILD
+    // Always configure ADC pin for brightness sensing (for debug display)
+    pinMode(PIN_BRIGHTNESS_ADC, INPUT);
+    analogReadResolution(ADC_RESOLUTION);
+    
     #if BRIGHTNESS_AUTO_ENABLE
-        // Configure ADC pin for brightness sensing
-        pinMode(PIN_BRIGHTNESS_ADC, INPUT);
-        analogReadResolution(ADC_RESOLUTION);
-        
         Serial.print("[BRIGHTNESS] Auto-dimming enabled on GPIO");
         Serial.println(PIN_BRIGHTNESS_ADC);
         Serial.print("[BRIGHTNESS] Voltage range: ");
@@ -24,7 +24,9 @@ void brightness_init() {
         Serial.print(BRIGHTNESS_VOLTAGE_MAX, 1);
         Serial.println("V");
     #else
-        Serial.println("[BRIGHTNESS] Auto-dimming disabled, using fixed brightness");
+        Serial.print("[BRIGHTNESS] Auto-dimming disabled (GPIO");
+        Serial.print(PIN_BRIGHTNESS_ADC);
+        Serial.println(" still readable for debug)");
     #endif
     
     // Set initial brightness
@@ -90,17 +92,13 @@ uint8_t brightness_get() {
 
 uint16_t brightness_read_raw() {
 #ifndef NATIVE_BUILD
-    #if BRIGHTNESS_AUTO_ENABLE
-        // Average multiple samples
-        uint32_t sum = 0;
-        for (int i = 0; i < BRIGHTNESS_SAMPLES; i++) {
-            sum += analogRead(PIN_BRIGHTNESS_ADC);
-            delayMicroseconds(100);
-        }
-        return (uint16_t)(sum / BRIGHTNESS_SAMPLES);
-    #else
-        return 0;
-    #endif
+    // Always read ADC (for debug display), regardless of auto-enable
+    uint32_t sum = 0;
+    for (int i = 0; i < BRIGHTNESS_SAMPLES; i++) {
+        sum += analogRead(PIN_BRIGHTNESS_ADC);
+        delayMicroseconds(100);
+    }
+    return (uint16_t)(sum / BRIGHTNESS_SAMPLES);
 #else
     return 0;
 #endif
@@ -108,21 +106,18 @@ uint16_t brightness_read_raw() {
 
 float brightness_read_voltage() {
 #ifndef NATIVE_BUILD
-    #if BRIGHTNESS_AUTO_ENABLE
-        uint16_t raw = brightness_read_raw();
-        
-        // Convert ADC to voltage at the ADC pin
-        float adc_voltage = ((float)raw / (float)ADC_MAX_VALUE) * ADC_VREF;
-        
-        // Calculate input voltage using voltage divider formula
-        // Vin = Vout * (R1 + R2) / R2
-        float input_voltage = adc_voltage * (BRIGHTNESS_DIVIDER_R1 + BRIGHTNESS_DIVIDER_R2) 
-                             / BRIGHTNESS_DIVIDER_R2;
-        
-        return input_voltage;
-    #else
-        return 0.0f;
-    #endif
+    // Always read voltage (for debug display), regardless of auto-enable
+    uint16_t raw = brightness_read_raw();
+    
+    // Convert ADC to voltage at the ADC pin
+    float adc_voltage = ((float)raw / (float)ADC_MAX_VALUE) * ADC_VREF;
+    
+    // Calculate input voltage using voltage divider formula
+    // Vin = Vout * (R1 + R2) / R2
+    float input_voltage = adc_voltage * (BRIGHTNESS_DIVIDER_R1 + BRIGHTNESS_DIVIDER_R2) 
+                         / BRIGHTNESS_DIVIDER_R2;
+    
+    return input_voltage;
 #else
     return 0.0f;
 #endif
