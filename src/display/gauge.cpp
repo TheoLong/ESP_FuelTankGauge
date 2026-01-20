@@ -58,8 +58,11 @@ void gauge_draw_percentage(int16_t x, int16_t y, float percent) {
     if (percent < 0.0f) percent = 0.0f;
     if (percent > 100.0f) percent = 100.0f;
     
-    // Clear the percentage area first
-    display_fill_rect(x, y, GAUGE_WIDTH, UI_FONT_SIZE_PERCENT * 8, UI_COLOR_BACKGROUND);
+    // Clear a wider percentage area to avoid residue from "100%"
+    // Use a larger width to ensure complete clearing
+    int16_t clear_width = GAUGE_WIDTH + 20;  // Extra width for safety
+    int16_t clear_x = x - 10;  // Start a bit to the left
+    display_fill_rect(clear_x, y, clear_width, UI_FONT_SIZE_PERCENT * 8, UI_COLOR_BACKGROUND);
     
     display_set_text_size(UI_FONT_SIZE_PERCENT);
     display_set_text_color(UI_COLOR_TEXT);

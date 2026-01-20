@@ -56,11 +56,11 @@ public:
             _panel_instance.config(cfg);
         }
         
-        // Backlight configuration
+        // Backlight configuration - Waveshare board uses ACTIVE LOW backlight!
         {
             auto cfg = _light_instance.config();
             cfg.pin_bl = LCD_PIN_BL;
-            cfg.invert = false;
+            cfg.invert = true;   // ACTIVE LOW - set true to invert
             cfg.freq = 44100;
             cfg.pwm_channel = 0;
             _light_instance.config(cfg);

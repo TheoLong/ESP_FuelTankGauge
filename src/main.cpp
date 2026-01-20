@@ -43,12 +43,27 @@ static int16_t gauge_y = 0;
 void setup() {
     // Initialize serial for debugging
     Serial.begin(115200);
-    delay(100);
+    
+    // Wait for serial to be ready (important for USB CDC)
+    delay(2000);  // Give time for USB serial to connect
     
     Serial.println();
-    Serial.println("================================");
-    Serial.println("ESP32-C6 Dual Fuel Tank Gauge");
-    Serial.println("================================");
+    Serial.println("========================================");
+    Serial.println("  ESP32-C6 Dual Fuel Tank Gauge");
+    Serial.println("  Debug Build - " __DATE__ " " __TIME__);
+    Serial.println("========================================");
+    Serial.println();
+    
+    // Print chip info
+    Serial.print("[BOOT] ESP32-C6 Chip Revision: ");
+    Serial.println(ESP.getChipRevision());
+    Serial.print("[BOOT] CPU Frequency: ");
+    Serial.print(ESP.getCpuFreqMHz());
+    Serial.println(" MHz");
+    Serial.print("[BOOT] Free Heap: ");
+    Serial.print(ESP.getFreeHeap());
+    Serial.println(" bytes");
+    Serial.println();
     
     // Print current mode
     #if MODE_DEMO
@@ -83,17 +98,26 @@ void setup() {
     demo_mode_init();
     #endif
     
-    // Calculate gauge positions (portrait mode: LCD_HEIGHT is width, LCD_WIDTH is height)
-    // Screen is 170 wide x 320 tall in portrait
-    int16_t screen_width = LCD_HEIGHT;   // 320 pixels
-    int16_t screen_height = LCD_WIDTH;   // 170 pixels
+    // Calculate gauge positions for portrait mode (170 wide x 320 tall)
+    // In portrait mode (rotation 0): 
+    //   - Screen width = 170 pixels (narrow)
+    //   - Screen height = 320 pixels (tall)
+    int16_t screen_width = LCD_WIDTH;    // 170 pixels
+    int16_t screen_height = LCD_HEIGHT;  // 320 pixels
     
-    // Position gauges side by side, centered
-    int16_t total_gauge_width = GAUGE_WIDTH * 2 + 40;  // Two gauges + gap
+    Serial.print("[LAYOUT] Screen dimensions: ");
+    Serial.print(screen_width);
+    Serial.print("x");
+    Serial.println(screen_height);
+    
+    // Position gauges side by side, centered horizontally
+    // Each gauge is GAUGE_WIDTH wide with a gap between them
+    int16_t gap_between = 20;  // Gap between the two gauges
+    int16_t total_gauge_width = GAUGE_WIDTH * 2 + gap_between;
     int16_t start_x = (screen_width - total_gauge_width) / 2;
     
     tank1_x = start_x;
-    tank2_x = start_x + GAUGE_WIDTH + 40;
+    tank2_x = start_x + GAUGE_WIDTH + gap_between;
     
     // Vertical position - centered with room for labels and percentages
     int total_bar_height = GAUGE_SEGMENT_COUNT * (GAUGE_SEGMENT_HEIGHT + GAUGE_SEGMENT_GAP) - GAUGE_SEGMENT_GAP;
@@ -110,6 +134,17 @@ void setup() {
     Serial.print(gauge_y);
     Serial.println(")");
     
+    Serial.print("[LAYOUT] GAUGE_WIDTH=");
+    Serial.print(GAUGE_WIDTH);
+    Serial.print(" total_gauge_width=");
+    Serial.print(total_gauge_width);
+    Serial.print(" start_x=");
+    Serial.println(start_x);
+    
+    Serial.print("[LAYOUT] total_bar_height=");
+    Serial.print(total_bar_height);
+    Serial.print(" total_element_height=");
+    Serial.println(total_element_height);    
     Serial.println("Setup complete!");
     Serial.println();
 }

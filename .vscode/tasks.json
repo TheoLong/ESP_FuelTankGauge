@@ -1,0 +1,37 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "PlatformIO Build",
+			"type": "shell",
+			"command": "cd /Users/theo/Desktop/ESP_FuelTankGauge && ~/.platformio/penv/bin/pio run || pio run",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "PlatformIO Upload",
+			"type": "shell",
+			"command": "cd /Users/theo/Desktop/ESP_FuelTankGauge && pio run -t upload -e esp32c6",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "PlatformIO Upload with USB CDC",
+			"type": "shell",
+			"command": "cd /Users/theo/Desktop/ESP_FuelTankGauge && pio run -t upload",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Upload Firmware with Backlight Fix",
+			"type": "shell",
+			"command": "cd /Users/theo/Desktop/ESP_FuelTankGauge && pio run -t upload",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

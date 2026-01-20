@@ -1,46 +1,105 @@
 #include "display.h"
 #include <stdint.h>
 #include <string.h>
+#include <Arduino.h>
 
 #ifndef NATIVE_BUILD
 // LovyanGFX display instance
 static LGFX *gfx = nullptr;
 
 bool display_init() {
+    Serial.println("[DISPLAY] Starting display initialization...");
+    Serial.println("[DISPLAY] Pin Configuration:");
+    Serial.print("  MOSI: GPIO"); Serial.println(LCD_PIN_MOSI);
+    Serial.print("  CLK:  GPIO"); Serial.println(LCD_PIN_CLK);
+    Serial.print("  DC:   GPIO"); Serial.println(LCD_PIN_DC);
+    Serial.print("  CS:   GPIO"); Serial.println(LCD_PIN_CS);
+    Serial.print("  RST:  GPIO"); Serial.println(LCD_PIN_RST);
+    Serial.print("  BL:   GPIO"); Serial.println(LCD_PIN_BL);
+    Serial.print("  Rotation: "); Serial.println(LCD_ROTATION);
+    Serial.print("  Width: "); Serial.print(LCD_WIDTH); Serial.print(" Height: "); Serial.println(LCD_HEIGHT);
+    
+    // Manually turn on backlight first (ACTIVE LOW!)
+    Serial.println("[DISPLAY] Manually setting backlight pin LOW (active low)");
+    pinMode(LCD_PIN_BL, OUTPUT);
+    digitalWrite(LCD_PIN_BL, LOW);  // Active LOW - LOW turns backlight ON
+    
+    Serial.println("[DISPLAY] Creating LGFX object...");
     gfx = new LGFX();
     
     if (!gfx) {
+        Serial.println("[DISPLAY] ERROR: Failed to create LGFX object!");
         return false;
     }
+    Serial.println("[DISPLAY] LGFX object created successfully");
     
     // Initialize display
+    Serial.println("[DISPLAY] Calling gfx->init()...");
     gfx->init();
+    Serial.println("[DISPLAY] gfx->init() completed");
+    
+    Serial.print("[DISPLAY] Setting rotation to "); Serial.println(LCD_ROTATION);
     gfx->setRotation(LCD_ROTATION);
     
-    // Turn on backlight
+    // Turn on backlight via LovyanGFX as well
+    Serial.println("[DISPLAY] Setting backlight to 255 via LovyanGFX");
     gfx->setBrightness(255);
     
+    // Add a small delay for display stabilization
+    delay(100);
+    
     // Clear to background color
+    Serial.println("[DISPLAY] Clearing screen to background color");
     display_clear(UI_COLOR_BACKGROUND);
     
+    // Draw a test pattern to verify display works
+    Serial.println("[DISPLAY] Drawing test pattern...");
+    gfx->fillRect(0, 0, 50, 50, 0xF800);   // Red square top-left
+    gfx->fillRect(50, 0, 50, 50, 0x07E0);  // Green square
+    gfx->fillRect(100, 0, 50, 50, 0x001F); // Blue square
+    gfx->setTextColor(0xFFFF);
+    gfx->setTextSize(2);
+    gfx->setCursor(10, 80);
+    gfx->print("Display OK!");
+    gfx->setCursor(10, 110);
+    gfx->print("Fuel Gauge");
+    Serial.println("[DISPLAY] Test pattern drawn - you should see colored squares!");
+    
+    delay(2000);  // Show test pattern for 2 seconds
+    
+    // Clear again before returning
+    Serial.println("[DISPLAY] Clearing test pattern...");
+    display_clear(UI_COLOR_BACKGROUND);
+    
+    Serial.println("[DISPLAY] Initialization complete!");
     return true;
 }
 
 void display_clear(uint16_t color) {
     if (gfx) {
+        Serial.print("[DISPLAY] fillScreen color: 0x");
+        Serial.println(color, HEX);
         gfx->fillScreen(color);
+    } else {
+        Serial.println("[DISPLAY] WARNING: gfx is null in display_clear!");
     }
 }
 
 void display_backlight_on() {
     if (gfx) {
+        Serial.println("[DISPLAY] Backlight ON");
         gfx->setBrightness(255);
+    } else {
+        Serial.println("[DISPLAY] WARNING: gfx is null in backlight_on!");
     }
 }
 
 void display_backlight_off() {
     if (gfx) {
+        Serial.println("[DISPLAY] Backlight OFF");
         gfx->setBrightness(0);
+    } else {
+        Serial.println("[DISPLAY] WARNING: gfx is null in backlight_off!");
     }
 }
 
